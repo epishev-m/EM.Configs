@@ -9,16 +9,16 @@ public abstract class ConfigLink
 {
 	public readonly Type Type;
 
-	public readonly string Name;
+	public readonly string Id;
 
 	protected ConfigLink(Type entryType,
-		string name)
+		string id)
 	{
 		Requires.NotNull(entryType, nameof(entryType));
-		Requires.ValidArgument(!string.IsNullOrWhiteSpace(name), "Name cannot be empty or null.");
+		Requires.ValidArgument(!string.IsNullOrWhiteSpace(id), "Name cannot be empty or null.");
 
 		Type = entryType;
-		Name = name;
+		Id = id;
 	}
 }
 
@@ -29,8 +29,8 @@ public sealed class ConfigLink<T> : ConfigLink
 	[NonSerialized]
 	public T Value;
 
-	public ConfigLink(string name)
-		: base(typeof(T), name)
+	public ConfigLink(string id)
+		: base(typeof(T), id)
 	{
 	}
 }

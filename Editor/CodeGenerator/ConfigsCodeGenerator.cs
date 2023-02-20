@@ -24,7 +24,7 @@ public sealed class ConfigsCodeGenerator
 		new CodeGeneratorSimple(nameof(ConfigLink) + "Extension.cs", _path, 
 				new CodeGeneratorSimpleComment("This code is generated automatically, do not change it!",
 					new CodeGeneratorSimpleNamespace(_typeInfo.Namespace,
-						new CodeGeneratorSimpleUsing(new[] {"System.Linq", "Configs"},
+						new CodeGeneratorSimpleUsing(new[] {"System.Linq", "EM.Configs"},
 							new CodeGeneratorSimpleClass(nameof(ConfigLink) + "Extension", "static",
 								new CodeGeneratorConfigLinkExtension(_typeInfo))))))
 			.Create();

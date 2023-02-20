@@ -1,5 +1,6 @@
 ﻿namespace EM.Configs.Editor
 {
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -15,29 +16,19 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\n{1}\n\t\treturn null;\n\t}}\n";
 
 	private const string contentUnwrapTemplate =
-		"\n\t\tvar result{0} = gameConfigs.{0}.FirstOrDefault(item => item.Name == configLink.Name);" +
+		"\n\t\tvar result{0} = gameConfigs.{0}.FirstOrDefault(item => item.Id == configLink.Id);" +
 		"\n\n\t\tif (result{0} != null)\n\t\t{{\n\t\t\tconfigLink.Value = result{0};\n\n\t\t\treturn result{0};\n\t\t}}\n";
 
 	private readonly TypeInfo _typeInfo;
+
+	private readonly Dictionary<Type, List<string>> _fields = new();
 
 	#region ICodeGenerator
 
 	public string Create()
 	{
-		var code = string.Empty;
-		var fields = GetFields();
-
-		foreach (var (type, names) in fields)
-		{
-			var contentUnwrap = string.Empty;
-
-			foreach (var name in names)
-			{
-				contentUnwrap += string.Format(contentUnwrapTemplate, name);
-			}
-
-			code += string.Format(UnwrapTemplate, type, contentUnwrap);
-		}
+		FillFields();
+		var code = GenerateCode();
 
 		return code;
 	}
@@ -51,38 +42,77 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		_typeInfo = typeInfo;
 	}
 
-	private Dictionary<Type, List<string>> GetFields()
+	private string GenerateCode()
 	{
-		var temp = new Dictionary<Type, List<string>>();
+		var code = string.Empty;
+		
+		foreach (var (type, namesList) in _fields)
+		{
+			var contentUnwrap = string.Empty;
+
+			foreach (var name in namesList)
+			{
+				contentUnwrap += string.Format(contentUnwrapTemplate, name);
+			}
+
+			code += string.Format(UnwrapTemplate, type, contentUnwrap);
+		}
+
+		return code;
+	}
+
+	private void FillFields()
+	{
+		_fields.Clear();
 		var fields = _typeInfo.GetFields();
 
 		foreach (var fieldInfo in fields)
 		{
-			var type = fieldInfo.FieldType;
-
-			if (!type.IsArray)
+			if (TryGetElementType(fieldInfo, out var elementType))
 			{
-				continue;
+				AddField(elementType, fieldInfo);
 			}
+		}
+	}
 
-			var elementType = type.GetElementType();
+	private static bool TryGetElementType(FieldInfo fieldInfo, out Type elementType)
+	{
+		var type = fieldInfo.FieldType;
 
-			if (elementType == null)
-			{
-				continue;
-			}
+		if (!type.IsArray)
+		{
+			elementType = null;
 
-			var fieldName = fieldInfo.Name;
-
-			if (!temp.ContainsKey(elementType))
-			{
-				temp.Add(elementType, new List<string>());
-			}
-
-			temp[elementType].Add(fieldName);
+			return false;
 		}
 
-		return temp;
+		elementType = type.GetElementType();
+
+		if (elementType == null)
+		{
+			return false;
+		}
+
+		if (elementType.GetField("Id") == null)
+		{
+			elementType = null;
+
+			return false;
+		}
+
+		return true;
+	}
+
+	private void AddField(Type type, FieldInfo fieldInfo)
+	{
+		var fieldName = fieldInfo.Name;
+
+		if (!_fields.ContainsKey(type))
+		{
+			_fields.Add(type, new List<string>());
+		}
+
+		_fields[type].Add(fieldName);
 	}
 
 	#endregion

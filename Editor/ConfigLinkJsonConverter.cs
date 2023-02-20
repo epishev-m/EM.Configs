@@ -15,7 +15,7 @@ public class ConfigLinkJsonConverter : JsonConverter
 		object value,
 		JsonSerializer serializer)
 	{
-		writer.WriteValue(((ConfigLink) value).Name);
+		writer.WriteValue(((ConfigLink) value).Id);
 	}
 
 	public override object ReadJson(JsonReader reader,

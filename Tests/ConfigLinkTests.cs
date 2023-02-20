@@ -72,7 +72,7 @@ internal sealed class ConfigLinkTests
 		// Act
 		var configLink = new ConfigLink<Test>(expectedName);
 		var actualType = configLink.Type;
-		var actualName = configLink.Name;
+		var actualName = configLink.Id;
 
 		// Assert
 		Assert.AreEqual(typeof(Test), actualType);
@@ -84,8 +84,8 @@ internal sealed class ConfigLinkTests
 	private sealed class ConfigLinkTest : ConfigLink
 	{
 		public ConfigLinkTest(Type entryType,
-			string name)
-			: base(entryType, name)
+			string id)
+			: base(entryType, id)
 		{
 		}
 	}
