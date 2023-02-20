@@ -1,0 +1,21 @@
+{
+    "name": "EM.Configs.Editor",
+    "rootNamespace": "",
+    "references": [
+        "EM.Configs",
+        "EM.Foundation",
+        "EM.Foundation.Editor",
+        "Unity.Addressables.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,17 @@
+{
+    "name": "EM.Configs",
+    "rootNamespace": "",
+    "references": [
+        "EM.Foundation",
+        "EM.Foundation.Editor"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
