@@ -1,6 +1,8 @@
 ﻿namespace EM.Configs.Editor
 {
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -122,16 +124,17 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 			if (GUILayout.Button("Configure"))
 			{
-				CreateConfig();
-				AssetDatabase.Refresh();
+				var config = CreateConfig();
+				ValidateConfig(config);
+				SaveConfig(config);
 				SetAddressableFlag();
 			}
 		}
 	}
 
-	private void CreateConfig()
+	private T CreateConfig()
 	{
-		var library = new T();
+		var config = new T();
 		var fullInputPath = Path.GetFullPath(Settings.InputPath, Application.dataPath);
 		var dir = new DirectoryInfo(fullInputPath);
 		var files = dir.GetFiles("*.json");
@@ -148,12 +151,86 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 		foreach (var fileInfo in files)
 		{
 			var json = File.ReadAllText(fileInfo.FullName);
-			JsonConvert.PopulateObject(json, library, jsonSettings);
+			JsonConvert.PopulateObject(json, config, jsonSettings);
 		}
 
+		return config;
+	}
+
+	private void ValidateConfig(T config)
+	{
+		var resultList = new List<ConfigLink>();
+		RecursiveSearch(config, resultList);
+
+		foreach (var configLink in resultList)
+		{
+			Debug.Log($"type: {configLink.Type} - id: {configLink.Id}");
+		}
+	}
+
+	private void RecursiveSearch(object instance,
+		List<ConfigLink> resultList)
+	{
+		var type = instance.GetType();
+		var fields = type.GetFields();
+
+		foreach (var field in fields)
+		{
+			var fieldValue = field.GetValue(instance);
+
+			if (fieldValue == null)
+			{
+				continue;
+			}
+
+			var fieldType = fieldValue.GetType();
+
+			if (fieldValue is string)
+			{
+				continue;
+			}
+
+			if (!fieldType.IsClass)
+			{
+				continue;
+			}
+
+			if (fieldType.IsArray)
+			{
+				var array = fieldValue as Array;
+
+				foreach (var obj in array)
+				{
+					if (obj is ConfigLink link)
+					{
+						resultList.Add(link);
+					}
+					else
+					{
+						RecursiveSearch(obj, resultList);
+					}
+				}
+
+				continue;
+			}
+
+			if (typeof(ConfigLink).IsAssignableFrom(fieldType))
+			{
+				resultList.Add(fieldValue as ConfigLink);
+			}
+			else
+			{
+				RecursiveSearch(fieldValue, resultList);
+			}
+		}
+	}
+
+	private void SaveConfig(T config)
+	{
 		var formatter = new BinaryFormatter();
 		using var fs = new FileStream(Settings.FullOutputPath, FileMode.OpenOrCreate);
-		formatter.Serialize(fs, library);
+		formatter.Serialize(fs, config);
+		AssetDatabase.Refresh();
 	}
 
 	private void SetAddressableFlag()
