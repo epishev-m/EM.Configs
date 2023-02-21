@@ -1,4 +1,4 @@
-﻿namespace EM.Configs
+﻿namespace EM.Configs.Editor
 {
 
 using System;

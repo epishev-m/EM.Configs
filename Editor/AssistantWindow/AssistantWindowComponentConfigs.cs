@@ -15,6 +15,8 @@ using UnityEngine;
 public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssistantWindowComponent<ConfigsSettings>
 	where T : class, new()
 {
+	private readonly IEnumerable<IConfigsValidator> _validators;
+
 	#region ScriptableObjectAssistantWindowComponent
 
 	public override string Name => "Configs";
@@ -44,6 +46,11 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 	#endregion
 
 	#region AssistantWindowComponentConfigs
+
+	public AssistantWindowComponentConfigs(IEnumerable<IConfigsValidator> validators)
+	{
+		_validators = validators;
+	}
 
 	private void OnGuiInputPath()
 	{
@@ -159,13 +166,14 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	private void ValidateConfig(T config)
 	{
-		var resultList = new List<ConfigLink>();
-		RecursiveSearch(config, resultList);
-
-		foreach (var configLink in resultList)
+		foreach (var validator in _validators)
 		{
-			Debug.Log($"type: {configLink.Type} - id: {configLink.Id}");
+			if (!validator.Validate(config))
+			{
+				Debug.LogError(validator.ErrorMassage);
+			}
 		}
+
 	}
 
 	private void RecursiveSearch(object instance,
