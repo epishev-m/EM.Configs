@@ -1,14 +1,11 @@
-using EM.Foundation;
-
 namespace EM.Configs.Editor
 {
-    public interface IConfigsValidator
-    {
-        string ErrorMassage
-        {
-            get;
-        }
-        
-        bool Validate(object config);
-    }
+
+public interface IConfigsValidator
+{
+	string ErrorMassage { get; }
+
+	bool Validate(object config);
+}
+
 }

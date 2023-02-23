@@ -1,6 +1,6 @@
 namespace EM.Configs.Editor
 {
-	
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,259 +10,275 @@ using Foundation;
 
 public sealed class ConfigLinkValidator : IConfigsValidator
 {
-    private readonly Dictionary<Type, List<ConfigLink>> _dictionaryLinks = new();
-    
-    private readonly Dictionary<Type, List<object>> _dictionaryObjects = new();
+	private readonly Dictionary<Type, List<ConfigLink>> _dictionaryLinks = new();
 
-    private readonly StringBuilder _errorMessage = new();
+	private readonly Dictionary<Type, List<object>> _dictionaryObjects = new();
 
-    #region IConfigsValidator
+	private readonly StringBuilder _errorMessage = new();
 
-    public string ErrorMassage => _errorMessage.ToString();
-    
-    public bool Validate(object config)
-    {
-	    Requires.NotNull(config, nameof(config));
+	#region IConfigsValidator
 
-	    _dictionaryLinks.Clear();
-	    _dictionaryObjects.Clear();
-	    _errorMessage.Clear();
+	public string ErrorMassage => _errorMessage.ToString();
 
-	    _errorMessage.AppendLine($"{nameof(ConfigLinkValidator)} :: Not found objects:");
-	    
-	    FillLinks(config);
-	    FillObjects(config);
-	    GenerateErrorLog();
+	public bool Validate(object config)
+	{
+		Requires.NotNull(config, nameof(config));
 
-	    return string.IsNullOrWhiteSpace(_errorMessage.ToString());
-    }
+		Clear();
+		FillLinks(config);
+		FillObjects(config);
+		GenerateErrorLog();
 
-    #endregion
+		return string.IsNullOrWhiteSpace(_errorMessage.ToString());
+	}
 
-    #region ConfigLinkValidator
+	#endregion
 
-    private void FillLinks(object instance)
-    {
-        var type = instance.GetType();
-        var fields = type.GetFields();
+	#region ConfigLinkValidator
 
-        foreach (var field in fields)
-        {
-	        var fieldValue = field.GetValue(instance);
-	        var fieldType = field.FieldType;
+	private void Clear()
+	{
+		_dictionaryLinks.Clear();
+		_dictionaryObjects.Clear();
+		_errorMessage.Clear();
+	}
 
-	        if (!CheckValueAndType(fieldValue, fieldType))
-	        {
-		        continue;
-	        }
+	private void FillLinks(object instance)
+	{
+		var type = instance.GetType();
+		var fields = type.GetFields();
 
-	        if (CheckIfTypeIsArrayLinks(fieldValue, fieldType))
-	        {
-		        continue;
-	        }
+		foreach (var field in fields)
+		{
+			var fieldValue = field.GetValue(instance);
+			var fieldType = field.FieldType;
 
-	        if (!TryAddConfigLink(fieldValue, fieldType))
-	        {
-		        FillLinks(fieldValue);
-	        }
-        }
-    }
+			if (!CheckValueAndType(fieldValue, fieldType))
+			{
+				continue;
+			}
 
-    private static bool CheckValueAndType(object fieldValue,
-        Type fieldType)
-    {
-        switch (fieldValue)
-        {
-	        case null:
-	        case string:
-		        return false;
-        }
+			if (CheckIfTypeIsArrayLinks(fieldValue, fieldType))
+			{
+				continue;
+			}
 
-        return fieldType.IsClass;
-    }
+			if (!TryAddConfigLink(fieldValue, fieldType))
+			{
+				FillLinks(fieldValue);
+			}
+		}
+	}
 
-    private bool CheckIfTypeIsArrayLinks(object fieldValue,
-        Type fieldType)
-    {
-        if (!fieldType.IsArray)
-        {
-	        return false;
-        }
+	private static bool CheckValueAndType(object fieldValue,
+		Type fieldType)
+	{
+		switch (fieldValue)
+		{
+			case null:
+			case string:
+				return false;
+		}
 
-        foreach (var obj in (Array) fieldValue)
-        {
-	        var type = obj.GetType();
+		return fieldType.IsClass;
+	}
 
-	        if (TryAddConfigLink(obj, type))
-	        {
-		        continue;
-	        }
+	private bool CheckIfTypeIsArrayLinks(object fieldValue,
+		Type fieldType)
+	{
+		if (!fieldType.IsArray)
+		{
+			return false;
+		}
 
-	        if (CheckValueAndType(obj, type))
-	        {
-		        FillLinks(obj);
-	        }
-        }
+		foreach (var obj in (Array) fieldValue)
+		{
+			if (obj == null)
+			{
+				continue;
+			}
 
-        return true;
-    }
+			var type = obj.GetType();
 
-    private bool TryAddConfigLink(object fieldValue,
-        Type fieldType)
-    {
-        if (!typeof(ConfigLink).IsAssignableFrom(fieldType))
-        {
-	        return false;
-        }
+			if (TryAddConfigLink(obj, type))
+			{
+				continue;
+			}
 
-        var configLink = (ConfigLink) fieldValue;
+			if (CheckValueAndType(obj, type))
+			{
+				FillLinks(obj);
+			}
+		}
 
-        if (!_dictionaryLinks.ContainsKey(configLink.Type))
-        {
-	        _dictionaryLinks.Add(configLink.Type, new List<ConfigLink>());
-        }
-        
-        _dictionaryLinks[configLink.Type].Add(configLink);
+		return true;
+	}
 
-        return true;
-    }
+	private bool TryAddConfigLink(object fieldValue,
+		Type fieldType)
+	{
+		if (!typeof(ConfigLink).IsAssignableFrom(fieldType))
+		{
+			return false;
+		}
 
-    private void FillObjects(object instance)
-    {
-        var type = instance.GetType();
-        var fields = type.GetFields();
+		var configLink = (ConfigLink) fieldValue;
 
-        foreach (var field in fields)
-        {
-	        var fieldValue = field.GetValue(instance);
-	        var fieldType = field.FieldType;
+		if (!_dictionaryLinks.ContainsKey(configLink.Type))
+		{
+			_dictionaryLinks.Add(configLink.Type, new List<ConfigLink>());
+		}
 
-	        if (!CheckValueAndType(fieldValue, fieldType))
-	        {
-		        continue;
-	        }
+		_dictionaryLinks[configLink.Type].Add(configLink);
 
-	        if (CheckIfTypeIsArrayObjects(fieldValue, fieldType))
-	        {
-		        continue;
-	        }
+		return true;
+	}
 
-	        if (TryAddConfigObject(fieldValue, fieldType))
-	        {
-		        FillObjects(fieldValue);
-	        }
-        }
-    }
-    
-    private bool CheckIfTypeIsArrayObjects(object fieldValue,
-        Type fieldType)
-    {
-        if (!fieldType.IsArray)
-        {
-	        return false;
-        }
+	private void FillObjects(object instance)
+	{
+		var type = instance.GetType();
+		var fields = type.GetFields();
 
-        foreach (var obj in (Array) fieldValue)
-        {
-	        var type = obj.GetType();
+		foreach (var field in fields)
+		{
+			var fieldValue = field.GetValue(instance);
+			var fieldType = field.FieldType;
 
-	        if (TryAddConfigObject(obj, type))
-	        {
-		        continue;
-	        }
+			if (!CheckValueAndType(fieldValue, fieldType))
+			{
+				continue;
+			}
 
-	        if (CheckValueAndType(obj, type))
-	        {
-		        FillObjects(obj);
-	        }
-        }
+			if (CheckIfTypeIsArrayObjects(fieldValue, fieldType))
+			{
+				continue;
+			}
 
-        return true;
-    }
+			if (TryAddConfigObject(fieldValue, fieldType))
+			{
+				FillObjects(fieldValue);
+			}
+		}
+	}
 
-    private bool TryAddConfigObject(object fieldValue,
-        Type fieldType)
-    {
-        if (!_dictionaryLinks.ContainsKey(fieldType))
-        {
-	        return false;
-        }
+	private bool CheckIfTypeIsArrayObjects(object fieldValue,
+		Type fieldType)
+	{
+		if (!fieldType.IsArray)
+		{
+			return false;
+		}
 
-        if (!_dictionaryObjects.ContainsKey(fieldType))
-        {
-	        _dictionaryObjects.Add(fieldType, new List<object>());
-        }
+		foreach (var obj in (Array) fieldValue)
+		{
+			if (obj == null)
+			{
+				continue;
+			}
 
-        _dictionaryObjects[fieldType].Add(fieldValue);
+			var type = obj.GetType();
 
-        return true;
-    }
-    
-    private void GenerateErrorLog()
-    {
-        foreach (var (type, configLinkList) in _dictionaryLinks)
-        {
-	        if (CheckKeyAndFillErrors(type, configLinkList))
-	        {
-		        continue;
-	        }
+			if (TryAddConfigObject(obj, type))
+			{
+				continue;
+			}
 
-	        FillErrors(type, configLinkList);
-        }
-    }
+			if (CheckValueAndType(obj, type))
+			{
+				FillObjects(obj);
+			}
+		}
 
-    private object GetObjectById(ConfigLink configLink,
-        FieldInfo fieldInfo)
-    {
-        var obj = _dictionaryObjects[configLink.Type].FirstOrDefault(obj =>
-        {
-	        var id = (string) fieldInfo.GetValue(obj);
-			        
-	        return configLink.Id == id;
-        });
+		return true;
+	}
 
-        return obj;
-    }
+	private bool TryAddConfigObject(object fieldValue,
+		Type fieldType)
+	{
+		if (!_dictionaryLinks.ContainsKey(fieldType))
+		{
+			return false;
+		}
 
-    private bool CheckKeyAndFillErrors(Type type,
-        IEnumerable<ConfigLink> configLinkList)
-    {
-        if (_dictionaryObjects.ContainsKey(type))
-        {
-	        return false;
-        }
+		if (!_dictionaryObjects.ContainsKey(fieldType))
+		{
+			_dictionaryObjects.Add(fieldType, new List<object>());
+		}
 
-        foreach (var configLink in configLinkList)
-        {
-	        AddLogError(configLink);
-        }
+		_dictionaryObjects[fieldType].Add(fieldValue);
 
-        return true;
-    }
+		return true;
+	}
 
-    private void FillErrors(Type type,
-        IEnumerable<ConfigLink> configLinkList)
-    {
-        var fieldInfo = type.GetField("Id");
-	        
-        foreach (var configLink in configLinkList)
-        {
-	        var obj = GetObjectById(configLink, fieldInfo);
+	private void GenerateErrorLog()
+	{
+		foreach (var (type, configLinkList) in _dictionaryLinks)
+		{
+			if (CheckKeyAndFillErrors(type, configLinkList))
+			{
+				continue;
+			}
 
-	        if (obj == null)
-	        {
-		        AddLogError(configLink);
-	        }
-        }
-    }
+			FillErrors(type, configLinkList);
+		}
+	}
 
-    private void AddLogError(ConfigLink configLink)
-    {
-        _errorMessage.AppendLine(
-	        $" - Type: \"{configLink.Type.Name}\", Id: \"{configLink.Id}\"");
-    }
+	private object GetObjectById(ConfigLink configLink,
+		FieldInfo fieldInfo)
+	{
+		var obj = _dictionaryObjects[configLink.Type].FirstOrDefault(obj =>
+		{
+			var id = (string) fieldInfo.GetValue(obj);
 
-    #endregion
+			return configLink.Id == id;
+		});
+
+		return obj;
+	}
+
+	private bool CheckKeyAndFillErrors(Type type,
+		IEnumerable<ConfigLink> configLinkList)
+	{
+		if (_dictionaryObjects.ContainsKey(type))
+		{
+			return false;
+		}
+
+		foreach (var configLink in configLinkList)
+		{
+			AddLogError(configLink);
+		}
+
+		return true;
+	}
+
+	private void FillErrors(Type type,
+		IEnumerable<ConfigLink> configLinkList)
+	{
+		var fieldInfo = type.GetField("Id");
+
+		foreach (var configLink in configLinkList)
+		{
+			var obj = GetObjectById(configLink, fieldInfo);
+
+			if (obj == null)
+			{
+				AddLogError(configLink);
+			}
+		}
+	}
+
+	private void AddLogError(ConfigLink configLink)
+	{
+		if (string.IsNullOrWhiteSpace(_errorMessage.ToString()))
+		{
+			_errorMessage.AppendLine($"{nameof(ConfigLinkValidator)} :: Not found objects:");
+		}
+
+		_errorMessage.AppendLine($" - Type: \"{configLink.Type.Name}\", Id: \"{configLink.Id}\"");
+	}
+
+	#endregion
 }
 
 }

@@ -1,12 +1,12 @@
 ﻿namespace EM.Configs.Editor
 {
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
-using Foundation.Editor;
+using System.Text;
+using EM.Foundation.Editor;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
@@ -23,7 +23,8 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	protected override string GetCreatePath()
 	{
-		var path = EditorUtility.SaveFilePanelInProject("Create Configs Settings", "ConfigsSettings.asset", "asset", "");
+		var path = EditorUtility.SaveFilePanelInProject("Create Configs Settings",
+			"ConfigsSettings.asset", "asset", "");
 
 		return path;
 	}
@@ -166,70 +167,24 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	private void ValidateConfig(T config)
 	{
+		var stringBuilder = new StringBuilder();
 		foreach (var validator in _validators)
 		{
 			if (!validator.Validate(config))
 			{
-				Debug.LogError(validator.ErrorMassage);
+				stringBuilder.AppendLine(validator.ErrorMassage);
 			}
 		}
 
-	}
+		var errors = stringBuilder.ToString();
 
-	private void RecursiveSearch(object instance,
-		List<ConfigLink> resultList)
-	{
-		var type = instance.GetType();
-		var fields = type.GetFields();
-
-		foreach (var field in fields)
+		if (string.IsNullOrWhiteSpace(errors))
 		{
-			var fieldValue = field.GetValue(instance);
-
-			if (fieldValue == null)
-			{
-				continue;
-			}
-
-			var fieldType = fieldValue.GetType();
-
-			if (fieldValue is string)
-			{
-				continue;
-			}
-
-			if (!fieldType.IsClass)
-			{
-				continue;
-			}
-
-			if (fieldType.IsArray)
-			{
-				var array = fieldValue as Array;
-
-				foreach (var obj in array)
-				{
-					if (obj is ConfigLink link)
-					{
-						resultList.Add(link);
-					}
-					else
-					{
-						RecursiveSearch(obj, resultList);
-					}
-				}
-
-				continue;
-			}
-
-			if (typeof(ConfigLink).IsAssignableFrom(fieldType))
-			{
-				resultList.Add(fieldValue as ConfigLink);
-			}
-			else
-			{
-				RecursiveSearch(fieldValue, resultList);
-			}
+			Debug.Log("Successful config validation!");
+		}
+		else
+		{
+			Debug.LogError("Config validation failed!\n\n" + errors);
 		}
 	}
 
