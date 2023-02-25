@@ -5,7 +5,8 @@
         "EM.Configs",
         "EM.Foundation",
         "EM.Foundation.Editor",
-        "Unity.Addressables.Editor"
+        "Unity.Addressables.Editor",
+        "MessagePack"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,13 +1,12 @@
 namespace EM.Configs
 {
 
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using Foundation;
+using MessagePack;
 using UnityEngine;
 
-public abstract class BaseConfigsFactory : IFactory
+public abstract class BaseConfigsFactory<T> : IFactory
+	where T : class
 {
 	private readonly IAssetsManager _assetsManager;
 
@@ -23,19 +22,14 @@ public abstract class BaseConfigsFactory : IFactory
 		}
 
 		var textAsset = loadAssetResult.Data;
-		var bytes = textAsset.bytes;
-		using var memoryStream = new MemoryStream();
-		memoryStream.Write(bytes, 0, bytes.Length);
-		memoryStream.Seek(0, SeekOrigin.Begin);
 		Result<object> result;
 
 		try
 		{
-			var formatter = new BinaryFormatter();
-			var instance = formatter.Deserialize(memoryStream);
+			var instance = MessagePackSerializer.Deserialize<T>(textAsset.bytes);
 			result = new SuccessResult<object>(instance);
 		}
-		catch (SerializationException)
+		catch (MessagePackSerializationException)
 		{
 			result = new ErrorResult<object>(ConfigsFactoryStringResources.ErrorDeserialization(this));
 		}

@@ -3,6 +3,7 @@
 
 using System.IO;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = nameof(ConfigsSettings), menuName = "Game/Configs Settings")]
 public sealed class ConfigsSettings : ScriptableObject
@@ -11,7 +12,9 @@ public sealed class ConfigsSettings : ScriptableObject
 
 	public string OutputPath;
 
-	public string CodeGenerationPath;
+	public string CodeGenerationInputPath;
+
+	public string CodeGenerationOutputPath;
 
 	#region ConfigsSettings
 
@@ -25,11 +28,11 @@ public sealed class ConfigsSettings : ScriptableObject
 		}
 	}
 
-	public string FullCodeGenerationPath
+	public string FullCodeGenerationOutputPath
 	{
 		get
 		{
-			var fullPath = Path.GetFullPath(CodeGenerationPath, Application.dataPath);
+			var fullPath = Path.GetFullPath(CodeGenerationOutputPath, Application.dataPath);
 			
 			return fullPath;
 		}

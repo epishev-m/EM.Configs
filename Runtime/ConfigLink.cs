@@ -11,6 +11,8 @@ public abstract class ConfigLink
 
 	public readonly string Id;
 
+	#region ConfigLink
+
 	protected ConfigLink(Type entryType,
 		string id)
 	{
@@ -20,19 +22,24 @@ public abstract class ConfigLink
 		Type = entryType;
 		Id = id;
 	}
+
+	#endregion
 }
 
 [Serializable]
 public sealed class ConfigLink<T> : ConfigLink
 	where T : class
 {
-	[NonSerialized]
-	public T Value;
+	[NonSerialized] public T Value;
+
+	#region ConfigLink
 
 	public ConfigLink(string id)
 		: base(typeof(T), id)
 	{
 	}
+
+	#endregion
 }
 
 }

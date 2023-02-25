@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "EM.Foundation",
-        "EM.Foundation.Editor"
+        "EM.Foundation.Editor",
+        "MessagePack",
+        "MessagePack.Annotations"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

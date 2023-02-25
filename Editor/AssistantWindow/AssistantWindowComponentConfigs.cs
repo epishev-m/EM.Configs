@@ -4,9 +4,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading.Tasks;
 using EM.Foundation.Editor;
+using MessagePack;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
@@ -16,6 +17,10 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 	where T : class, new()
 {
 	private readonly IEnumerable<IConfigsValidator> _validators;
+
+	private bool _invokingCodeGen;
+
+	private bool _assetDbRefresh;
 
 	#region ScriptableObjectAssistantWindowComponent
 
@@ -38,10 +43,20 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	protected override void OnGUIConfig()
 	{
-		OnGuiInputPath();
-		OnGuiOutputPath();
-		OnGuiCodeGenerationPath();
-		OnGuiButtons();
+		if (_assetDbRefresh)
+		{
+			_assetDbRefresh = false;
+			AssetDatabase.Refresh();
+		}
+
+		using (new EditorDisabledGroup(_invokingCodeGen))
+		{
+			OnGuiInputPath();
+			OnGuiOutputPath();
+			OnGuiCodeGenerationInputPath();
+			OnGuiCodeGenerationOutputPath();
+			OnGuiButtons();
+		}
 	}
 
 	#endregion
@@ -55,7 +70,7 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	private void OnGuiInputPath()
 	{
-		EditorGUILayout.LabelField("Input path:");
+		EditorGUILayout.LabelField("Input path (json):");
 
 		using (new EditorHorizontalGroup())
 		{
@@ -97,27 +112,51 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 		}
 	}
 
-	private void OnGuiCodeGenerationPath()
+	private void OnGuiCodeGenerationInputPath()
 	{
-		EditorGUILayout.LabelField("Code Generation path:");
+		EditorGUILayout.LabelField("[Code Generate] Input path:");
 
 		using (new EditorHorizontalGroup())
 		{
 			GUI.enabled = false;
-			EditorGUILayout.TextField(Settings.CodeGenerationPath);
+			EditorGUILayout.TextField(Settings.CodeGenerationInputPath);
 			GUI.enabled = true;
 
 			if (GUILayout.Button("...", GUILayout.Width(30)))
 			{
-				var fullPath = EditorUtility.OpenFolderPanel("Code Generation Path", "Assets", string.Empty);
+				var fullPath = EditorUtility.OpenFolderPanel("[Code Generate] Input Path", "Assets", string.Empty);
 
 				if (!string.IsNullOrWhiteSpace(fullPath))
 				{
-					Settings.CodeGenerationPath = Path.GetRelativePath(Application.dataPath, fullPath);
+					Settings.CodeGenerationInputPath = Path.GetRelativePath(Application.dataPath, fullPath);
 				}
 			}
 		}
 	}
+
+	private void OnGuiCodeGenerationOutputPath()
+	{
+		EditorGUILayout.LabelField("[Code Generate] Output path:");
+
+		using (new EditorHorizontalGroup())
+		{
+			GUI.enabled = false;
+			EditorGUILayout.TextField(Settings.CodeGenerationOutputPath);
+			GUI.enabled = true;
+
+			if (GUILayout.Button("...", GUILayout.Width(30)))
+			{
+				var fullPath = EditorUtility.OpenFolderPanel("[Code Generate] Output Path", "Assets", string.Empty);
+
+				if (!string.IsNullOrWhiteSpace(fullPath))
+				{
+					Settings.CodeGenerationOutputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+				}
+			}
+		}
+	}
+
+	private Task _codeGenerateTask;
 
 	private void OnGuiButtons()
 	{
@@ -125,17 +164,20 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 		using (new EditorVerticalGroup())
 		{
-			if (GUILayout.Button("Code Generate"))
+			using (new EditorDisabledGroup(_invokingCodeGen))
 			{
-				CodeGenerate();
-			}
+				if (GUILayout.Button("Code Generate"))
+				{
+					CodeGenerate();
+				}
 
-			if (GUILayout.Button("Configure"))
-			{
-				var config = CreateConfig();
-				ValidateConfig(config);
-				SaveConfig(config);
-				SetAddressableFlag();
+				if (GUILayout.Button("Configure"))
+				{
+					var config = CreateConfig();
+					ValidateConfig(config);
+					SaveConfig(config);
+					SetAddressableFlag();
+				}
 			}
 		}
 	}
@@ -190,9 +232,12 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	private void SaveConfig(T config)
 	{
-		var formatter = new BinaryFormatter();
-		using var fs = new FileStream(Settings.FullOutputPath, FileMode.OpenOrCreate);
-		formatter.Serialize(fs, config);
+		using (var fs = new FileStream(Settings.FullOutputPath, FileMode.OpenOrCreate))
+		{
+			//var lz4Options = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
+			MessagePackSerializer.Serialize(fs, config);
+		}
+
 		AssetDatabase.Refresh();
 	}
 
@@ -207,8 +252,17 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	private void CodeGenerate()
 	{
-		var codeGenerator = new ConfigsCodeGenerator(typeof(T).GetTypeInfo(), Settings.FullCodeGenerationPath);
-		codeGenerator.Execute();
+		_invokingCodeGen = true;
+
+		new ConfigsCodeGenerator(typeof(T).GetTypeInfo(), Settings.FullCodeGenerationOutputPath)
+			.Execute();
+
+		new MessagePackCodeGenerator(Settings.CodeGenerationInputPath, Settings.CodeGenerationOutputPath)
+			.Execute(() =>
+			{
+				_invokingCodeGen = false;
+				_assetDbRefresh = true;
+			});
 	}
 
 	#endregion

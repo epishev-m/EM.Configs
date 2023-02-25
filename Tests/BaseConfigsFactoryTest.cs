@@ -27,7 +27,7 @@ public sealed class BaseConfigsFactoryTest
 
 	#region Nested
 
-	private sealed class TestConfigsFactory : BaseConfigsFactory
+	private sealed class TestConfigsFactory : BaseConfigsFactory<TestConfig>
 	{
 		#region BaseConfigsFactory
 
@@ -43,6 +43,10 @@ public sealed class BaseConfigsFactoryTest
 		}
 
 		#endregion
+	}
+	
+	private sealed class TestConfig
+	{
 	}
 
 	#endregion
