@@ -1,7 +1,8 @@
+using System.Collections;
+
 namespace EM.Configs.Editor
 {
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -60,7 +61,7 @@ public sealed class NullObjectValidator : IConfigsValidator
 				continue;
 			}
 
-			if (CheckIsArray(fieldValue, fieldType, field.Name, path))
+			if (CheckIsCollection(fieldValue, field.Name, path))
 			{
 				continue;
 			}
@@ -123,21 +124,21 @@ public sealed class NullObjectValidator : IConfigsValidator
 		return true;
 	}
 
-	private bool CheckIsArray(object fieldValue,
-		Type fieldType,
+	private bool CheckIsCollection(object fieldValue,
 		string name,
 		string path)
 	{
-		if (!fieldType.IsArray)
+		if (fieldValue is not ICollection collection)
 		{
 			return false;
 		}
 
-		foreach (var obj in (Array) fieldValue)
+		foreach (var obj in collection)
 		{
 			if (obj == null)
 			{
-				_errors.Add($"{path}.{name}[] - contains the null element!");
+				var parentInfo = GetParentInfo(fieldValue);
+				_errors.Add($"{parentInfo} / Path: {path}.{name}[] - Contains the null element");
 
 				continue;
 			}

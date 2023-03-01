@@ -2,6 +2,7 @@ namespace EM.Configs.Editor
 {
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -58,7 +59,7 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 				continue;
 			}
 
-			if (CheckIfTypeIsArrayLinks(fieldValue, fieldType))
+			if (CheckIfTypeIsArrayLinks(fieldValue))
 			{
 				continue;
 			}
@@ -83,15 +84,14 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 		return fieldType.IsClass;
 	}
 
-	private bool CheckIfTypeIsArrayLinks(object fieldValue,
-		Type fieldType)
+	private bool CheckIfTypeIsArrayLinks(object fieldValue)
 	{
-		if (!fieldType.IsArray)
+		if (fieldValue is not ICollection collection)
 		{
 			return false;
 		}
 
-		foreach (var obj in (Array) fieldValue)
+		foreach (var obj in collection)
 		{
 			if (obj == null)
 			{
@@ -149,7 +149,7 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 				continue;
 			}
 
-			if (CheckIfTypeIsArrayObjects(fieldValue, fieldType))
+			if (CheckIfTypeIsArrayObjects(fieldValue))
 			{
 				continue;
 			}
@@ -161,15 +161,14 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 		}
 	}
 
-	private bool CheckIfTypeIsArrayObjects(object fieldValue,
-		Type fieldType)
+	private bool CheckIfTypeIsArrayObjects(object fieldValue)
 	{
-		if (!fieldType.IsArray)
+		if (fieldValue is not ICollection collection)
 		{
 			return false;
 		}
 
-		foreach (var obj in (Array) fieldValue)
+		foreach (var obj in collection)
 		{
 			if (obj == null)
 			{

@@ -1,16 +1,14 @@
-using System.Collections;
-
 namespace EM.Configs.Editor
 {
 
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Foundation;
 
-public sealed class StringEmptyValidator : IConfigsValidator
+public sealed class CollectionSizeValidator : IConfigsValidator
 {
 	private readonly StringBuilder _errorMessage = new();
 
@@ -33,7 +31,7 @@ public sealed class StringEmptyValidator : IConfigsValidator
 
 	#endregion
 
-	#region StringEmptyValidator
+	#region LengthValidator
 
 	private void Clear()
 	{
@@ -57,17 +55,12 @@ public sealed class StringEmptyValidator : IConfigsValidator
 				continue;
 			}
 
-			if (CheckString(field, fieldValue, instance, path))
-			{
-				continue;
-			}
-
 			if (CheckExcludedClasses(fieldValue))
 			{
 				continue;
 			}
 
-			if (CheckIsCollection(fieldValue, field.Name, path))
+			if (CheckIsCollection(field, fieldValue, field.Name, instance, path))
 			{
 				continue;
 			}
@@ -83,7 +76,7 @@ public sealed class StringEmptyValidator : IConfigsValidator
 	{
 		if (_errors.Any())
 		{
-			_errorMessage.AppendLine($"{nameof(StringEmptyValidator)} :: Found empty strings");
+			_errorMessage.AppendLine($"{nameof(CollectionSizeValidator)} :: Collection size does not meet requirements");
 		}
 
 		foreach (var error in _errors)
@@ -92,46 +85,44 @@ public sealed class StringEmptyValidator : IConfigsValidator
 		}
 	}
 
-	private bool CheckString(FieldInfo fieldInfo,
-		object fieldValue,
-		object parent,
-		string path)
-	{
-		if (fieldValue is not string value)
-		{
-			return false;
-		}
-
-		if (!string.IsNullOrWhiteSpace(value))
-		{
-			return true;
-		}
-
-		var optionalField = fieldInfo.GetCustomAttribute<EmptyStringAllowedAttribute>();
-
-		if (optionalField != null)
-		{
-			return true;
-		}
-
-		var parentInfo = GetParentInfo(parent);
-		_errors.Add($"{parentInfo} / Path: {path}.{fieldInfo.Name}");
-
-		return true;
-	}
-
 	private static bool CheckExcludedClasses(object fieldValue)
 	{
-		return fieldValue is ConfigLink;
+		if (fieldValue is string)
+		{
+			return true;
+		}
+
+		if (fieldValue is ConfigLink)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
-	private bool CheckIsCollection(object fieldValue,
+	private bool CheckIsCollection(FieldInfo fieldInfo,
+		object fieldValue,
 		string name,
+		object parent,
 		string path)
 	{
 		if (fieldValue is not ICollection collection)
 		{
 			return false;
+		}
+
+		var range = fieldInfo.GetCustomAttribute<CollectionSizeAttribute>();
+
+		if (range != null)
+		{
+			var length = collection.Count;
+
+			if (length < range.Min || length > range.Max)
+			{
+				var parentInfo = GetParentInfo(parent);
+				_errors.Add($"{parentInfo} / Path: {path}.{name}[] " +
+							$"- Collection size = {length} is out of range [{range.Min}:{range.Max}]");
+			}
 		}
 
 		foreach (var obj in collection)
