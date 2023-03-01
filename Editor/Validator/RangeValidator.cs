@@ -83,7 +83,7 @@ public sealed class RangeValidator : IConfigsValidator
 	{
 		if (_errors.Any())
 		{
-			_errorMessage.AppendLine($"{nameof(CollectionSizeValidator)} :: Value is out of range");
+			_errorMessage.AppendLine($"{nameof(RangeValidator)} :: Value is out of range");
 		}
 
 		foreach (var error in _errors)

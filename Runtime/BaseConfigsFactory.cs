@@ -47,7 +47,7 @@ public abstract class BaseConfigsFactory<T> : IFactory
 
 	protected BaseConfigsFactory(IAssetsManager assetsManager)
 	{
-		Requires.NotNull(assetsManager, nameof(assetsManager));
+		Requires.NotNullParam(assetsManager, nameof(assetsManager));
 
 		_assetsManager = assetsManager;
 	}
