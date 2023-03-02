@@ -1,6 +1,7 @@
 namespace EM.Configs.Editor
 {
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using Foundation;
 
-public sealed class StringEmptyValidator : IConfigsValidator
+public sealed class EnumValidator : IConfigsValidator
 {
 	private readonly StringBuilder _errorMessage = new();
 
@@ -31,7 +32,7 @@ public sealed class StringEmptyValidator : IConfigsValidator
 
 	#endregion
 
-	#region StringEmptyValidator
+	#region EnumValidator
 
 	private void Clear()
 	{
@@ -55,17 +56,17 @@ public sealed class StringEmptyValidator : IConfigsValidator
 				continue;
 			}
 
-			if (CheckString(field, fieldValue, instance, path))
-			{
-				continue;
-			}
-
 			if (CheckExcludedClasses(fieldValue))
 			{
 				continue;
 			}
 
 			if (CheckIsCollection(fieldValue, field.Name, path))
+			{
+				continue;
+			}
+
+			if (CheckEnum(field, fieldValue, fieldType, instance, path))
 			{
 				continue;
 			}
@@ -81,7 +82,7 @@ public sealed class StringEmptyValidator : IConfigsValidator
 	{
 		if (_errors.Any())
 		{
-			_errorMessage.AppendLine($"{nameof(StringEmptyValidator)} :: Found empty strings");
+			_errorMessage.AppendLine($"{nameof(EnumValidator)} :: The enum value must not be \"0\" (None)");
 		}
 
 		foreach (var error in _errors)
@@ -90,37 +91,19 @@ public sealed class StringEmptyValidator : IConfigsValidator
 		}
 	}
 
-	private bool CheckString(FieldInfo fieldInfo,
-		object fieldValue,
-		object parent,
-		string path)
-	{
-		if (fieldValue is not string value)
-		{
-			return false;
-		}
-
-		if (!string.IsNullOrWhiteSpace(value))
-		{
-			return true;
-		}
-
-		var optionalField = fieldInfo.GetCustomAttribute<EmptyStringAllowedAttribute>();
-
-		if (optionalField != null)
-		{
-			return true;
-		}
-
-		var parentInfo = GetParentInfo(parent);
-		_errors.Add($"{parentInfo} / Path: {path}.{fieldInfo.Name}");
-
-		return true;
-	}
-
 	private static bool CheckExcludedClasses(object fieldValue)
 	{
-		return fieldValue is ConfigLink;
+		if (fieldValue is string)
+		{
+			return true;
+		}
+
+		if (fieldValue is ConfigLink)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	private bool CheckIsCollection(object fieldValue,
@@ -141,6 +124,45 @@ public sealed class StringEmptyValidator : IConfigsValidator
 
 			FillErrors(obj, $"{path}.{name}[]");
 		}
+
+		return true;
+	}
+
+	private bool CheckEnum(FieldInfo fieldInfo,
+		object fieldValue,
+		Type fieldType,
+		object parent,
+		string path)
+	{
+		if (!fieldType.IsEnum)
+		{
+			return false;
+		}
+
+		var values = Enum.GetValues(fieldType) as IList;
+
+		if (values.Count <= 0)
+		{
+			return true;
+		}
+
+		var rawValue = Convert.ToInt64(fieldValue);
+		var rawItemNone = Convert.ToInt64(values[0]);
+
+		if (rawValue != rawItemNone)
+		{
+			return true;
+		}
+
+		var optionalField = fieldInfo.GetCustomAttribute<OptionalFieldAttribute>();
+
+		if (optionalField != null)
+		{
+			return true;
+		}
+
+		var parentInfo = GetParentInfo(parent);
+		_errors.Add($"{parentInfo} / Path: {path}.{fieldInfo.Name}");
 
 		return true;
 	}

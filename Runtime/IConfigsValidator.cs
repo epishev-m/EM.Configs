@@ -1,4 +1,4 @@
-namespace EM.Configs.Editor
+namespace EM.Configs
 {
 
 public interface IConfigsValidator

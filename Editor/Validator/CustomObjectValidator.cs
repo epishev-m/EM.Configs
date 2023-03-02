@@ -1,6 +1,7 @@
 namespace EM.Configs.Editor
 {
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,15 +9,15 @@ using System.Reflection;
 using System.Text;
 using Foundation;
 
-public sealed class StringEmptyValidator : IConfigsValidator
+public sealed class CustomObjectValidator : IConfigsValidator
 {
 	private readonly StringBuilder _errorMessage = new();
 
-	private readonly List<string> _errors = new();
+	private readonly Dictionary<Type, string> _errors = new();
 
 	#region IConfigsValidator
 
-	public string ErrorMassage => _errorMessage.ToString();
+	public string ErrorMassage { get; }
 
 	public bool Validate(object config)
 	{
@@ -31,7 +32,7 @@ public sealed class StringEmptyValidator : IConfigsValidator
 
 	#endregion
 
-	#region StringEmptyValidator
+	#region CustomObjectValidator
 
 	private void Clear()
 	{
@@ -55,11 +56,6 @@ public sealed class StringEmptyValidator : IConfigsValidator
 				continue;
 			}
 
-			if (CheckString(field, fieldValue, instance, path))
-			{
-				continue;
-			}
-
 			if (CheckExcludedClasses(fieldValue))
 			{
 				continue;
@@ -70,10 +66,7 @@ public sealed class StringEmptyValidator : IConfigsValidator
 				continue;
 			}
 
-			if (fieldType.IsClass)
-			{
-				FillErrors(fieldValue, $"{path}.{field.Name}");
-			}
+			CheckIsCustom(field, fieldValue, fieldType, instance, path);
 		}
 	}
 
@@ -81,46 +74,65 @@ public sealed class StringEmptyValidator : IConfigsValidator
 	{
 		if (_errors.Any())
 		{
-			_errorMessage.AppendLine($"{nameof(StringEmptyValidator)} :: Found empty strings");
+			_errorMessage.AppendLine($"{nameof(CustomObjectValidator)}");
 		}
 
 		foreach (var error in _errors)
 		{
-			_errorMessage.AppendLine($" - {error}");
+			_errorMessage.AppendLine($" - {error.Key} :: {error.Value}");
 		}
 	}
 
-	private bool CheckString(FieldInfo fieldInfo,
+	private void CheckIsCustom(FieldInfo fieldInfo,
 		object fieldValue,
+		Type fieldType,
 		object parent,
 		string path)
 	{
-		if (fieldValue is not string value)
+		if (!fieldType.IsClass)
 		{
-			return false;
+			return;
 		}
 
-		if (!string.IsNullOrWhiteSpace(value))
+		var validateWith = fieldInfo.GetCustomAttribute<ValidateWithAttribute>();
+
+		if (validateWith == null)
 		{
-			return true;
+			FillErrors(fieldValue, $"{path}.{fieldInfo.Name}");
+
+			return;
 		}
 
-		var optionalField = fieldInfo.GetCustomAttribute<EmptyStringAllowedAttribute>();
+		var validator = Activator.CreateInstance(validateWith.Type) as IConfigsValidator;
 
-		if (optionalField != null)
+		Requires.NotNull(validator, nameof(validator));
+
+		if (validator == null)
 		{
-			return true;
+			return;
 		}
 
-		var parentInfo = GetParentInfo(parent);
-		_errors.Add($"{parentInfo} / Path: {path}.{fieldInfo.Name}");
-
-		return true;
+		if (!validator.Validate(parent))
+		{
+			var parentInfo = GetParentInfo(parent);
+			var error = $"{parentInfo} / Path: {path}.{fieldInfo.Name} - {validator.ErrorMassage}";
+			_errors.Add(fieldType, error);
+		}
 	}
 
 	private static bool CheckExcludedClasses(object fieldValue)
 	{
-		return fieldValue is ConfigLink;
+		if (fieldValue is string)
+		{
+			return true;
+		}
+
+		if (fieldValue is ConfigLink)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	private bool CheckIsCollection(object fieldValue,
