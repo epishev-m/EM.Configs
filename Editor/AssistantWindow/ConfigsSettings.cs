@@ -3,7 +3,6 @@
 
 using System.IO;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = nameof(ConfigsSettings), menuName = "Game/Configs Settings")]
 public sealed class ConfigsSettings : ScriptableObject

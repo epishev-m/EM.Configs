@@ -14,7 +14,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEngine;
 
-public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssistantWindowComponent<ConfigsSettings>
+public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComponent<ConfigsSettings>
 	where T : class, new()
 {
 	private readonly IEnumerable<IConfigsValidator> _validators;
@@ -64,7 +64,7 @@ public sealed class AssistantWindowComponentConfigs<T> : ScriptableObjectAssista
 
 	#region AssistantWindowComponentConfigs
 
-	public AssistantWindowComponentConfigs(IEnumerable<IConfigsValidator> validators)
+	public AssistantComponentConfigs(IEnumerable<IConfigsValidator> validators)
 	{
 		_validators = validators;
 	}
