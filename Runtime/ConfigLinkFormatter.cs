@@ -35,7 +35,12 @@ public sealed class ConfigLinkFormatter<T> : IMessagePackFormatter<ConfigLink<T>
 		var stringFormatter = resolver.GetFormatterWithVerify<string>();
 		var id =  stringFormatter.Deserialize(ref reader, options);
 
-		return new ConfigLink<T>(id);
+		var link = new ConfigLink<T>
+		{
+			Id = id
+		};
+
+		return link;
 	}
 
 	#endregion

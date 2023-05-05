@@ -28,8 +28,9 @@ public class ConfigLinkJsonConverter : JsonConverter
 			return null;
 		}
 
-		var name = (string) reader.Value;
-		var resultObj = Activator.CreateInstance(objectType, name);
+		var key = (string) reader.Value;
+		var resultObj = (ConfigLink) Activator.CreateInstance(objectType);
+		resultObj.Id = key;
 
 		return resultObj;
 	}

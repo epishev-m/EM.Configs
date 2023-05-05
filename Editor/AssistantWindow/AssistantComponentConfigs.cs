@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Assistant.Editor;
-using EM.Foundation.Editor;
 using MessagePack;
 using Newtonsoft.Json;
 using UnityEditor;

@@ -7,7 +7,8 @@
         "EM.Foundation.Editor",
         "Unity.Addressables.Editor",
         "EM.Assistant.Editor",
-        "MessagePack"
+        "MessagePack",
+        "MessagePack.Annotations"
     ],
     "includePlatforms": [
         "Editor"

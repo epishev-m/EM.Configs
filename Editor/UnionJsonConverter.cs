@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using MessagePack;
 
 public sealed class UnionConverter : JsonConverter
 {
@@ -30,7 +31,7 @@ public sealed class UnionConverter : JsonConverter
 				continue;
 			}
 
-			var fields = unionAttribute.Type.GetFields();
+			var fields = unionAttribute.SubType.GetFields();
 			var found = true;
 
 			foreach (var obj in jObject)
@@ -50,7 +51,7 @@ public sealed class UnionConverter : JsonConverter
 				continue;
 			}
 
-			var target = Activator.CreateInstance(unionAttribute.Type);
+			var target = Activator.CreateInstance(unionAttribute.SubType);
 			serializer.Populate(jObject.CreateReader(), target);
 
 			return target;

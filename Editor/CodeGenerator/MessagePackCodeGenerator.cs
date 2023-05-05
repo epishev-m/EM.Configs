@@ -43,8 +43,9 @@ public sealed class MessagePackCodeGenerator
 		{
 			process = Process.Start(psi);
 		}
-		catch (Exception)
+		catch (Exception e)
 		{
+			UnityEngine.Debug.LogError(e.Message);
 			return;
 		}
 

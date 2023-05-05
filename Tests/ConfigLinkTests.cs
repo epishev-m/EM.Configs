@@ -13,7 +13,7 @@ internal sealed class ConfigLinkTests
 		// Act
 		try
 		{
-			var unused = new ConfigLinkTest(null, "test");
+			var unused = new ConfigLinkTest(null);
 		}
 		catch (ArgumentNullException)
 		{
@@ -23,54 +23,17 @@ internal sealed class ConfigLinkTests
 		//Assert
 		Assert.IsTrue(actual);
 	}
-	
-	[Test]
-	public void ConfigLink_Constructor_ExceptionName()
-	{
-		// Arrange
-		var actual = false;
 
-		// Act
-		try
-		{
-			var unused = new ConfigLinkTest(typeof(Test), null);
-		}
-		catch (ArgumentException)
-		{
-			actual = true;
-		}
-
-		//Assert
-		Assert.IsTrue(actual);
-	}
-	
-	[Test]
-	public void ConfigLinkT_Constructor_Exception()
-	{
-		// Arrange
-		var actual = false;
-
-		// Act
-		try
-		{
-			var unused = new ConfigLink<Test>(null);
-		}
-		catch (ArgumentException)
-		{
-			actual = true;
-		}
-
-		//Assert
-		Assert.IsTrue(actual);
-	}
-	
 	[Test]
 	public void ConfigLinkT_Constructor_TypeAndName()
 	{
 		const string expectedName = "test";
 
 		// Act
-		var configLink = new ConfigLink<Test>(expectedName);
+		var configLink = new ConfigLink<Test>
+		{
+			Id = expectedName
+		};
 		var actualType = configLink.Type;
 		var actualName = configLink.Id;
 
@@ -83,9 +46,8 @@ internal sealed class ConfigLinkTests
 
 	private sealed class ConfigLinkTest : ConfigLink
 	{
-		public ConfigLinkTest(Type entryType,
-			string id)
-			: base(entryType, id)
+		public ConfigLinkTest(Type entryType)
+			: base(entryType)
 		{
 		}
 	}

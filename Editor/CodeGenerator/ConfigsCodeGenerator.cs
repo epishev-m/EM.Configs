@@ -2,7 +2,7 @@
 {
 
 using System.Reflection;
-using Foundation.Editor;
+using Assistant.Editor;
 
 public sealed class ConfigsCodeGenerator
 {
@@ -21,12 +21,13 @@ public sealed class ConfigsCodeGenerator
 
 	public void Execute()
 	{
-		new CodeGeneratorSimple(nameof(ConfigLink) + "ExtensionGenerated.cs", _path, 
+		new CodeGeneratorSimple(nameof(ConfigLink) + "ExtensionGenerated.cs", _path,
 				new CodeGeneratorSimpleComment("This code is generated automatically, do not change it!",
-					new CodeGeneratorSimpleNamespace(_typeInfo.Namespace,
-						new CodeGeneratorSimpleUsing(new[] {"System.Linq", "EM.Configs"},
-							new CodeGeneratorSimpleClass(nameof(ConfigLink) + "Extension", "static",
-								new CodeGeneratorConfigLinkExtension(_typeInfo))))))
+					new CodeGeneratorSimpleComment("ReSharper disable All",
+						new CodeGeneratorSimpleNamespace(_typeInfo.Namespace,
+							new CodeGeneratorSimpleUsing(new[] {"System.Collections.Generic", "System.Linq", "EM.Configs"},
+								new CodeGeneratorSimpleClass(nameof(ConfigLink) + "Extension", "static",
+									new CodeGeneratorConfigLinkExtension(_typeInfo)))))))
 			.Create();
 	}
 

@@ -9,18 +9,15 @@ public abstract class ConfigLink
 {
 	public readonly Type Type;
 
-	public readonly string Id;
+	public string Id;
 
 	#region ConfigLink
 
-	protected ConfigLink(Type entryType,
-		string id)
+	protected ConfigLink(Type entryType)
 	{
 		Requires.NotNullParam(entryType, nameof(entryType));
-		Requires.ValidArgument(!string.IsNullOrWhiteSpace(id), "Name cannot be empty or null.");
 
 		Type = entryType;
-		Id = id;
 	}
 
 	#endregion
@@ -34,8 +31,8 @@ public sealed class ConfigLink<T> : ConfigLink
 
 	#region ConfigLink
 
-	public ConfigLink(string id)
-		: base(typeof(T), id)
+	public ConfigLink()
+		: base(typeof(T))
 	{
 	}
 

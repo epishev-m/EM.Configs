@@ -2,22 +2,45 @@
 {
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using Foundation.Editor;
+using Assistant.Editor;
+using Unity.Properties;
 
 public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 {
 	private const string UnwrapTemplate =
 		"\n\tpublic static {0} Unwrap(this ConfigLink<{0}> configLink," + 
-		"\n\t\tGameConfigs gameConfigs)" +
+		"\n\t\t{1} gameConfigs)" +
 		"\n\t{{\n\t\tif (configLink.Value != null)" +
 		"\n\t\t{{\n\t\t\treturn configLink.Value;\n\t\t}}" +
-		"\n{1}\n\t\treturn null;\n\t}}\n";
+		"\n\n\t\tvar all = configLink.GetAll(gameConfigs);" +
+		"\n\n\t\treturn all.FirstOrDefault(item => item.Id == configLink.Id);\n\t}}\n";
 
-	private const string contentUnwrapTemplate =
-		"\n\t\tvar result{0} = gameConfigs.{0}.FirstOrDefault(item => item.Id == configLink.Id);" +
-		"\n\n\t\tif (result{0} != null)\n\t\t{{\n\t\t\tconfigLink.Value = result{0};\n\n\t\t\treturn result{0};\n\t\t}}\n";
+	private const string GetAllTemplate =
+		"\n\tprivate static IEnumerable<{0}> GetAll(this ConfigLink<{0}> configLink," + 
+		"\n\t\t{1} gameConfigs)" +
+		"\n\t{{\n\t\tvar resultList = new List<{0}>();" +
+		"{2}\n" +
+		"\n\t\treturn resultList;\n\t}}\n";
+	
+	private const string ContentGetAllTemplate =
+		"\n\n\t\tif (gameConfigs{0} != null)" +
+		"\n\t\t{{\n\t\t\tresultList.AddRange(gameConfigs{0});\n\t\t}}";
+
+	private const string GetIdsTemplate =
+		"\n\tpublic static IEnumerable<string> GetIds(this ConfigLink configLink," +
+		"\n\t\t{0} gameConfigs)" +
+		"\n\t{{\n\t\tswitch (configLink)" +
+		"\n\t\t{{\n\t\t{1}\n\t\t}}\n" +
+		"\n\t\treturn new List<string>();\n\t}}\n";
+
+	private const string ContentGetIdsTemplate =
+		"\tcase ConfigLink<{0}> link:" +
+		"\n\t\t\t{{\n\t\t\t\tvar all = link.GetAll(gameConfigs);" +
+		"\n\t\t\t\treturn all.Select(l => l.Id);\n\t\t\t}}";
 
 	private readonly TypeInfo _typeInfo;
 
@@ -27,7 +50,8 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 
 	public string Create()
 	{
-		FillFields();
+		_fields.Clear();
+		FillFields(_typeInfo, string.Empty);
 		var code = GenerateCode();
 
 		return code;
@@ -41,78 +65,173 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 	{
 		_typeInfo = typeInfo;
 	}
-
-	private string GenerateCode()
+	
+	private void FillFields(TypeInfo typeInfo, string path)
 	{
-		var code = string.Empty;
-		
-		foreach (var (type, namesList) in _fields)
-		{
-			var contentUnwrap = string.Empty;
-
-			foreach (var name in namesList)
-			{
-				contentUnwrap += string.Format(contentUnwrapTemplate, name);
-			}
-
-			code += string.Format(UnwrapTemplate, type, contentUnwrap);
-		}
-
-		return code;
-	}
-
-	private void FillFields()
-	{
-		_fields.Clear();
-		var fields = _typeInfo.GetFields();
+		var fields = typeInfo.GetFields();
 
 		foreach (var fieldInfo in fields)
 		{
 			if (TryGetElementType(fieldInfo, out var elementType))
 			{
-				AddField(elementType, fieldInfo);
+				AddField(elementType, $"{path}.{fieldInfo.Name}");
+				
+				continue;
+			}
+			
+			if (CheckExcludedClasses(fieldInfo))
+			{
+				continue;
+			}
+
+			if (fieldInfo.GetType().IsClass)
+			{
+				var fieldTypeInfo = fieldInfo.FieldType.GetTypeInfo();
+				FillFields(fieldTypeInfo, $"{path}.{fieldInfo.Name}");
 			}
 		}
 	}
 
-	private static bool TryGetElementType(FieldInfo fieldInfo, out Type elementType)
+	private static bool TryGetElementType(FieldInfo fieldInfo,
+		out Type elementType)
 	{
 		var type = fieldInfo.FieldType;
 
-		if (!type.IsArray)
+		if (!typeof(IList).IsAssignableFrom(type))
 		{
 			elementType = null;
 
 			return false;
 		}
 
-		elementType = type.GetElementType();
+		elementType = type.GetGenericArguments().First();
 
 		if (elementType == null)
 		{
 			return false;
 		}
+		
+		var fields = elementType.GetFields();
 
-		if (elementType.GetField("Id") == null)
+		if (CheckPrimaryKeyAttribute(fields))
 		{
-			elementType = null;
-
-			return false;
+			return true;
 		}
 
-		return true;
+		elementType = null;
+			
+		return false;
 	}
 
-	private void AddField(Type type, FieldInfo fieldInfo)
+	private static bool CheckPrimaryKeyAttribute(IEnumerable<FieldInfo> fields)
 	{
-		var fieldName = fieldInfo.Name;
+		var result= fields
+			.Select(field => field.GetCustomAttribute<PrimaryKeyAttribute>())
+			.Any(primaryKeyAttribute => primaryKeyAttribute != null);
 
+		return result;
+	}
+
+	private void AddField(Type type, string path)
+	{
 		if (!_fields.ContainsKey(type))
 		{
 			_fields.Add(type, new List<string>());
 		}
 
-		_fields[type].Add(fieldName);
+		_fields[type].Add(path);
+	}
+
+	private static bool CheckExcludedClasses(FieldInfo fieldInfo)
+	{
+		if (fieldInfo.FieldType.IsPrimitive)
+		{
+			return true;
+		}
+		
+		if (fieldInfo.FieldType == typeof(string))
+		{
+			return true;
+		}
+
+		if (typeof(IList).IsAssignableFrom(fieldInfo.FieldType))
+		{
+			return true;
+		}
+
+		if (fieldInfo.FieldType.IsArray)
+		{
+			return true;
+		}
+
+		if (typeof(ConfigLink).IsAssignableFrom(fieldInfo.FieldType))
+		{
+			return true;
+		}
+
+		return false;
+	}
+	
+	private string GenerateCode()
+	{
+		var code = string.Empty;
+		var unwrap = GenerateUnwrap();
+		code += unwrap;
+		var getIds = GenerateGetIds();
+		code += getIds;
+
+		return code;
+	}
+
+	private string GenerateUnwrap()
+	{
+		var code = string.Empty;
+		
+		foreach (var (type, namesList) in _fields)
+		{
+			var typeString = type.ToString().Replace('+', '.');
+			var rootType = _typeInfo.GetRootType();
+			code += string.Format(UnwrapTemplate, typeString, rootType);
+			var contentGetAll = GetContentGetAll(namesList);
+			code += string.Format(GetAllTemplate, typeString, rootType, contentGetAll);
+		}
+
+		return code;
+	}
+
+	private string GenerateGetIds()
+	{
+		var code = string.Empty;
+		var rootType = _typeInfo.GetRootType();
+		var content = GetContentGetIds();
+		code += string.Format(GetIdsTemplate, rootType, content);
+		
+		return code;
+	}
+
+	private string GetContentGetIds()
+	{
+		var code = string.Empty;
+		
+		foreach (var (type, _) in _fields)
+		{
+			var typeString = type.ToString().Replace('+', '.');
+			code += string.Format(ContentGetIdsTemplate, typeString);
+		}
+
+		return code;
+	}
+
+	private static string GetContentGetAll(List<string> namesList)
+	{
+		var content = string.Empty;
+
+		foreach (var name in namesList)
+		{
+			content += string.Format(ContentGetAllTemplate, name);
+		}
+
+		return content;
 	}
 
 	#endregion
