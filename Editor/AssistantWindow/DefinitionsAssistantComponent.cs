@@ -308,7 +308,7 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 
 		if (isShowLine)
 		{
-			EditorLayoutUtility.Line();
+			//EditorLayoutUtility.Line();
 		}
 
 		isShowLine = true;
@@ -394,17 +394,14 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 		FieldInfo field)
 	{
 		var fieldType = field.FieldType;
-		var fieldValue = field.GetValue(instance);
 
 		if (!fieldType.IsClass)
 		{
 			return false;
 		}
 
-		fieldValue ??= Activator.CreateInstance(fieldType);
-		var obj = GetObject(field, fieldValue);
-		obj.DoLayoutObject(field, fieldValue);
-		field.SetValue(instance, fieldValue);
+		var obj = GetObject(instance, field);
+		obj.DoLayoutObject(instance, field);
 
 		return true;
 	}
@@ -456,8 +453,8 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 		return collection;
 	}
 
-	private DefinitionsAssistantObject GetObject(FieldInfo field,
-		object instance)
+	private DefinitionsAssistantObject GetObject(object instance,
+		FieldInfo field)
 	{
 		var fieldHashCode = field.GetHashCode();
 		var instanceHashCode = instance.GetHashCode();
