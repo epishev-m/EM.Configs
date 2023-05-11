@@ -13,7 +13,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEngine;
 
-public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComponent<ConfigsSettings>
+public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssistantComponent<DefinitionSettings>
 	where T : class, new()
 {
 	private readonly IEnumerable<IConfigsValidator> _validators;
@@ -24,22 +24,9 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 
 	#region ScriptableObjectAssistantWindowComponent
 
-	public override string Name => "Configs";
+	public override string Name => "Definition General";
 
-	protected override string GetCreatePath()
-	{
-		var path = EditorUtility.SaveFilePanelInProject("Create Configs Settings",
-			"ConfigsSettings.asset", "asset", "");
-
-		return path;
-	}
-
-	protected override string GetSelectPath()
-	{
-		var path = EditorUtility.OpenFilePanel("Select Configs Settings", "Assets", "asset");
-
-		return path;
-	}
+	protected override string DirectoryPath => "ProjectSettings/";
 
 	protected override void OnGUIConfig()
 	{
@@ -63,7 +50,7 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 
 	#region AssistantWindowComponentConfigs
 
-	public AssistantComponentConfigs(IEnumerable<IConfigsValidator> validators)
+	public DefinitionGeneralAssistantComponent(IEnumerable<IConfigsValidator> validators)
 	{
 		_validators = validators;
 	}
@@ -82,10 +69,13 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 			{
 				var fullPath = EditorUtility.OpenFolderPanel("Input path", "Assets", string.Empty);
 
-				if (!string.IsNullOrWhiteSpace(fullPath))
+				if (string.IsNullOrWhiteSpace(fullPath))
 				{
-					Settings.InputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+					return;
 				}
+
+				Settings.InputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+				Save();
 			}
 		}
 	}
@@ -104,10 +94,13 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 			{
 				var fullPath = EditorUtility.OpenFolderPanel("Output path", "Assets", "");
 
-				if (!string.IsNullOrWhiteSpace(fullPath))
+				if (string.IsNullOrWhiteSpace(fullPath))
 				{
-					Settings.OutputPath = Path.GetRelativePath(Application.dataPath, fullPath) + @"\Configs.bytes";
+					return;
 				}
+
+				Settings.OutputPath = Path.GetRelativePath(Application.dataPath, fullPath) + @"\Configs.bytes";
+				Save();
 			}
 		}
 	}
@@ -126,10 +119,13 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 			{
 				var fullPath = EditorUtility.OpenFolderPanel("[Code Generate] Input Path", "Assets", string.Empty);
 
-				if (!string.IsNullOrWhiteSpace(fullPath))
+				if (string.IsNullOrWhiteSpace(fullPath))
 				{
-					Settings.CodeGenerationInputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+					return;
 				}
+				
+				Settings.CodeGenerationInputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+				Save();
 			}
 		}
 	}
@@ -148,10 +144,13 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 			{
 				var fullPath = EditorUtility.OpenFolderPanel("[Code Generate] Output Path", "Assets", string.Empty);
 
-				if (!string.IsNullOrWhiteSpace(fullPath))
+				if (string.IsNullOrWhiteSpace(fullPath))
 				{
-					Settings.CodeGenerationOutputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+					return;
 				}
+
+				Settings.CodeGenerationOutputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+				Save();
 			}
 		}
 	}
@@ -193,7 +192,7 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 		{
 			Converters =
 			{
-				new ConfigLinkJsonConverter(),
+				new DefinitionLinkJsonConverter(),
 				new UnionConverter()
 			}
 		};
@@ -254,7 +253,7 @@ public sealed class AssistantComponentConfigs<T> : ScriptableObjectAssistantComp
 	{
 		_invokingCodeGen = true;
 
-		new ConfigsCodeGenerator(typeof(T).GetTypeInfo(), Settings.FullCodeGenerationOutputPath)
+		new DefinitionCodeGenerator(typeof(T).GetTypeInfo(), Settings.FullCodeGenerationOutputPath)
 			.Execute();
 
 		new MessagePackCodeGenerator(Settings.CodeGenerationInputPath, Settings.CodeGenerationOutputPath)

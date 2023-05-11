@@ -12,12 +12,12 @@ using Unity.Properties;
 public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 {
 	private const string UnwrapTemplate =
-		"\n\tpublic static {0} Unwrap(this ConfigLink<{0}> configLink," + 
+		"\n\tpublic static {0} Unwrap(this DefinitionLink<{0}> definitionLink," + 
 		"\n\t\t{1} gameConfigs)" +
-		"\n\t{{\n\t\tif (configLink.Value != null)" +
-		"\n\t\t{{\n\t\t\treturn configLink.Value;\n\t\t}}" +
-		"\n\n\t\tvar all = configLink.GetAll(gameConfigs);" +
-		"\n\n\t\treturn all.FirstOrDefault(item => item.Id == configLink.Id);\n\t}}\n";
+		"\n\t{{\n\t\tif (definitionLink.Value != null)" +
+		"\n\t\t{{\n\t\t\treturn definitionLink.Value;\n\t\t}}" +
+		"\n\n\t\tvar all = definitionLink.GetAll(gameConfigs);" +
+		"\n\n\t\treturn all.FirstOrDefault(item => item.Id == definitionLink.Id);\n\t}}\n";
 
 	private const string GetAllTemplate =
 		"\n\tprivate static IEnumerable<{0}> GetAll(this ConfigLink<{0}> configLink," + 
@@ -31,14 +31,18 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\n\t\t{{\n\t\t\tresultList.AddRange(gameConfigs{0});\n\t\t}}";
 
 	private const string GetIdsTemplate =
-		"\n\tpublic static IEnumerable<string> GetIds(this ConfigLink configLink," +
-		"\n\t\t{0} gameConfigs)" +
-		"\n\t{{\n\t\tswitch (configLink)" +
-		"\n\t\t{{\n\t\t{1}\n\t\t}}\n" +
-		"\n\t\treturn new List<string>();\n\t}}\n";
+		"\n\tpublic static IEnumerable<string> GetIds(this DefinitionLink definitionLink," +
+		"\n\t\t{0} gameConfigs)\n\t{{\n";
+
+	private const string GetIdsSwitch =
+		"\t\tswitch (definitionLink)" +
+		"\n\t\t{{\n\t\t{0}\n\t\t}}\n\n";
+
+	private const string GetIdsReturn =
+		"\t\treturn new List<string>();\n\t}\n";
 
 	private const string ContentGetIdsTemplate =
-		"\tcase ConfigLink<{0}> link:" +
+		"\tcase DefinitionLink<{0}> link:" +
 		"\n\t\t\t{{\n\t\t\t\tvar all = link.GetAll(gameConfigs);" +
 		"\n\t\t\t\treturn all.Select(l => l.Id);\n\t\t\t}}";
 
@@ -164,7 +168,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 			return true;
 		}
 
-		if (typeof(ConfigLink).IsAssignableFrom(fieldInfo.FieldType))
+		if (typeof(DefinitionLink).IsAssignableFrom(fieldInfo.FieldType))
 		{
 			return true;
 		}
@@ -204,8 +208,15 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		var code = string.Empty;
 		var rootType = _typeInfo.GetRootType();
 		var content = GetContentGetIds();
-		code += string.Format(GetIdsTemplate, rootType, content);
-		
+		code += string.Format(GetIdsTemplate, rootType);
+
+		if (!string.IsNullOrWhiteSpace(content))
+		{
+			code += string.Format(GetIdsSwitch, content);
+		}
+
+		code += GetIdsReturn;
+
 		return code;
 	}
 

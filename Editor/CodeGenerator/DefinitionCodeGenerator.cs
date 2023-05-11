@@ -4,7 +4,7 @@
 using System.Reflection;
 using Assistant.Editor;
 
-public sealed class ConfigsCodeGenerator
+public sealed class DefinitionCodeGenerator
 {
 	private readonly TypeInfo _typeInfo;
 
@@ -12,7 +12,7 @@ public sealed class ConfigsCodeGenerator
 
 	#region ConfigsCodeGenerator
 
-	public ConfigsCodeGenerator(TypeInfo typeInfo,
+	public DefinitionCodeGenerator(TypeInfo typeInfo,
 		string path)
 	{
 		_typeInfo = typeInfo;
@@ -21,12 +21,12 @@ public sealed class ConfigsCodeGenerator
 
 	public void Execute()
 	{
-		new CodeGeneratorSimple(nameof(ConfigLink) + "ExtensionGenerated.cs", _path,
+		new CodeGeneratorSimple(nameof(DefinitionLink) + "ExtensionGenerated.cs", _path,
 				new CodeGeneratorSimpleComment("This code is generated automatically, do not change it!",
 					new CodeGeneratorSimpleComment("ReSharper disable All",
 						new CodeGeneratorSimpleNamespace(_typeInfo.Namespace,
 							new CodeGeneratorSimpleUsing(new[] {"System.Collections.Generic", "System.Linq", "EM.Configs"},
-								new CodeGeneratorSimpleClass(nameof(ConfigLink) + "Extension", "static",
+								new CodeGeneratorSimpleClass(nameof(DefinitionLink) + "Extension", "static",
 									new CodeGeneratorConfigLinkExtension(_typeInfo)))))))
 			.Create();
 	}

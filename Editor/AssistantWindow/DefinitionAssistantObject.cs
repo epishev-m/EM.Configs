@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
-public sealed class DefinitionsAssistantObject
+public sealed class DefinitionAssistantObject
 {
 	private readonly Action<object> _guiFields;
 
@@ -22,7 +22,7 @@ public sealed class DefinitionsAssistantObject
 
 	#region DefinitionsObject
 
-	public DefinitionsAssistantObject(EditorWindow window,
+	public DefinitionAssistantObject(EditorWindow window,
 		Action<object> guiFields)
 	{
 		_guiFields = guiFields;
@@ -30,24 +30,35 @@ public sealed class DefinitionsAssistantObject
 	}
 
 	public void DoLayoutObject(object instance,
+		FieldInfo field,
+		bool useGroup)
+	{
+		if (useGroup)
+		{
+			using var fadeGroup = new EditorFadeGroup(field.Name, _showExtraFields);
+
+			if (!fadeGroup.IsVisible)
+			{
+				return;
+			}
+
+			OnGuiObject(instance, field);
+		}
+		else
+		{
+			OnGuiObject(instance, field);
+		}
+	}
+
+	private void OnGuiObject(object instance,
 		FieldInfo field)
 	{
-		using var fadeGroup = new EditorFadeGroup(field.Name, _showExtraFields);
+		OnGuiTopPanel(instance, field);
+		var fieldValue = GetValue(instance, field);
 
-		if (!fadeGroup.IsVisible)
+		using (new EditorVerticalGroup(17, "GroupBox"))
 		{
-			return;
-		}
-
-		using (new EditorVerticalGroup(17))
-		{
-			OnGuiTopPanel(instance, field);
-			var fieldValue = GetValue(instance, field);
-
-			using (new EditorVerticalGroup(17, "GroupBox"))
-			{
-				_guiFields.Invoke(fieldValue);
-			}
+			_guiFields.Invoke(fieldValue);
 		}
 	}
 

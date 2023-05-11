@@ -14,22 +14,22 @@ using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
-public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
+public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	where T : class, new()
 {
 	private EditorWindow _window;
 
-	private readonly IDefinitionsAssistantHelper _externalHelper;
+	private readonly IDefinitionAssistantHelper _externalHelper;
 
 	private readonly T _definitions;
 
 	private readonly List<FieldInfo> _fields = new();
 
-	private readonly Dictionary<string, DefinitionsAssistantCollection> _collections = new();
+	private readonly Dictionary<string, DefinitionAssistantCollection> _collections = new();
 
-	private readonly Dictionary<string, DefinitionsAssistantObject> _objects = new();
+	private readonly Dictionary<string, DefinitionAssistantObject> _objects = new();
 
-	private readonly Dictionary<string, DefinitionsAssistantLink> _links = new();
+	private readonly Dictionary<string, DefinitionAssistantLink> _links = new();
 
 	private bool _info;
 
@@ -61,7 +61,7 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 
 	#region DefinitionsAssistantComponent
 
-	protected DefinitionsAssistantComponent(IDefinitionsAssistantHelper externalHelper,
+	protected DefinitionAssistantComponent(IDefinitionAssistantHelper externalHelper,
 		string name,
 		T definitions,
 		params string[] fieldNames)
@@ -197,7 +197,7 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 		{
 			Converters =
 			{
-				new ConfigLinkJsonConverter()
+				new DefinitionLinkJsonConverter()
 			},
 			Formatting = Formatting.Indented
 		};
@@ -236,7 +236,7 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 			ObjectCreationHandling = ObjectCreationHandling.Replace,
 			Converters =
 			{
-				new ConfigLinkJsonConverter(),
+				new DefinitionLinkJsonConverter(),
 				new UnionConverter()
 			}
 		};
@@ -377,7 +377,7 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 		var fieldType = field.FieldType;
 		var fieldValue = field.GetValue(instance);
 
-		if (!fieldType.IsSubclassOf(typeof(ConfigLink)))
+		if (!fieldType.IsSubclassOf(typeof(DefinitionLink)))
 		{
 			return false;
 		}
@@ -401,7 +401,8 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 		}
 
 		var obj = GetObject(instance, field);
-		obj.DoLayoutObject(instance, field);
+		var useGroup = _fields.Count > 1 && instance == _definitions;
+		obj.DoLayoutObject(instance, field, useGroup);
 
 		return true;
 	}
@@ -424,10 +425,11 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 	private static object ChangeValue(string name,
 		object value)
 	{
+
 		return value switch
 		{
 			string sValue => EditorGUILayout.TextField(name, sValue),
-			bool sValue => EditorGUILayout.Toggle(name, sValue),
+			bool sValue => ChangeValueBool(name, sValue),
 			int sValue => EditorGUILayout.IntField(name, sValue),
 			float sValue => EditorGUILayout.FloatField(name, sValue),
 			double sValue => EditorGUILayout.DoubleField(name, sValue),
@@ -435,7 +437,23 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 		};
 	}
 
-	private DefinitionsAssistantCollection GetCollection(FieldInfo field,
+	private static bool ChangeValueBool(string name,
+		bool value)
+	{
+		bool result;
+
+		using (new EditorHorizontalGroup(17))
+		{
+			result = GUILayout.Toggle(value, name, GUI.skin.button);
+			EditorGUILayout.Space();
+			EditorGUILayout.Space();
+		}
+		EditorGUILayout.Space();
+
+		return result;
+	}
+
+	private DefinitionAssistantCollection GetCollection(FieldInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -447,13 +465,13 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 			return collection;
 		}
 
-		collection = new DefinitionsAssistantCollection(_window, ChangeValue, OnGuiFields);
+		collection = new DefinitionAssistantCollection(_window, ChangeValue, OnGuiFields);
 		_collections.Add(key, collection);
 
 		return collection;
 	}
 
-	private DefinitionsAssistantObject GetObject(object instance,
+	private DefinitionAssistantObject GetObject(object instance,
 		FieldInfo field)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -465,13 +483,13 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 			return resultObject;
 		}
 
-		resultObject = new DefinitionsAssistantObject(_window, OnGuiFields);
+		resultObject = new DefinitionAssistantObject(_window, OnGuiFields);
 		_objects.Add(key, resultObject);
 
 		return resultObject;
 	}
 
-	private DefinitionsAssistantLink GetLink(FieldInfo field,
+	private DefinitionAssistantLink GetLink(FieldInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -483,7 +501,7 @@ public abstract class DefinitionsAssistantComponent<T> : IAssistantComponent
 			return resultLink;
 		}
 
-		resultLink = new DefinitionsAssistantLink(_externalHelper);
+		resultLink = new DefinitionAssistantLink(_externalHelper);
 		_links.Add(key, resultLink);
 
 		return resultLink;

@@ -11,7 +11,7 @@ using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
-public sealed class DefinitionsAssistantCollection
+public sealed class DefinitionAssistantCollection
 {
 	private readonly EditorWindow _window;
 
@@ -39,7 +39,7 @@ public sealed class DefinitionsAssistantCollection
 
 	#region DefinitionsCollection
 
-	public DefinitionsAssistantCollection(EditorWindow window,
+	public DefinitionAssistantCollection(EditorWindow window,
 		Func<string, object, object> changeValue,
 		Action<object> guiFields)
 	{
@@ -121,7 +121,7 @@ public sealed class DefinitionsAssistantCollection
 	{
 		var elementType = _supportedTypes[_addTypeIndex];
 
-		if (!elementType.IsSubclassOf(typeof(ConfigLink)))
+		if (!elementType.IsSubclassOf(typeof(DefinitionLink)))
 		{
 			return true;
 		}
@@ -481,9 +481,8 @@ public sealed class DefinitionsAssistantCollection
 			_isMaxFlag = false;
 		}
 
-		var buttonStyle = new GUIStyle(GUI.skin.button);
 		var isMaxFlagTemp = _isMaxFlag;
-		_isMaxFlag = GUILayout.Toggle(_isMaxFlag, "Max", buttonStyle);
+		_isMaxFlag = GUILayout.Toggle(_isMaxFlag, "Max", GUI.skin.button);
 
 		if (isMaxFlagTemp != _isMaxFlag)
 		{

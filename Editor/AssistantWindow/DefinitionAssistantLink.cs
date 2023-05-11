@@ -6,13 +6,13 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-public sealed class DefinitionsAssistantLink
+public sealed class DefinitionAssistantLink
 {
-	private readonly IDefinitionsAssistantHelper _externalHelper;
+	private readonly IDefinitionAssistantHelper _externalHelper;
 
 	#region DefinitionsAssistantLink
 
-	public DefinitionsAssistantLink(IDefinitionsAssistantHelper externalHelper)
+	public DefinitionAssistantLink(IDefinitionAssistantHelper externalHelper)
 	{
 		_externalHelper = externalHelper;
 	}
@@ -21,7 +21,7 @@ public sealed class DefinitionsAssistantLink
 		FieldInfo field,
 		object fieldValue)
 	{
-		if (fieldValue is not ConfigLink link)
+		if (fieldValue is not DefinitionLink link)
 		{
 			return;
 		}
@@ -39,7 +39,7 @@ public sealed class DefinitionsAssistantLink
 	}
 
 	private List<string> GetOptions(object definitions,
-		ConfigLink link)
+		DefinitionLink link)
 	{
 		var options = _externalHelper.GetIds(link, definitions).ToList();
 

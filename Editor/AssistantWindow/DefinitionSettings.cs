@@ -1,11 +1,13 @@
 ﻿namespace EM.Configs.Editor
 {
 
+using System;
 using System.IO;
+using Newtonsoft.Json;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = nameof(ConfigsSettings), menuName = "Game/Configs Settings")]
-public sealed class ConfigsSettings : ScriptableObject
+[Serializable]
+public sealed class DefinitionSettings
 {
 	public string InputPath;
 
@@ -17,22 +19,24 @@ public sealed class ConfigsSettings : ScriptableObject
 
 	#region ConfigsSettings
 
+	[JsonIgnore]
 	public string FullOutputPath
 	{
 		get
 		{
 			var fullPath = Path.GetFullPath(OutputPath, Application.dataPath);
-			
+
 			return fullPath;
 		}
 	}
 
+	[JsonIgnore]
 	public string FullCodeGenerationOutputPath
 	{
 		get
 		{
 			var fullPath = Path.GetFullPath(CodeGenerationOutputPath, Application.dataPath);
-			
+
 			return fullPath;
 		}
 	}

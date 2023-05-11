@@ -120,7 +120,7 @@ public sealed class StringEmptyValidator : IConfigsValidator
 
 	private static bool CheckExcludedClasses(object fieldValue)
 	{
-		return fieldValue is ConfigLink;
+		return fieldValue is DefinitionLink;
 	}
 
 	private bool CheckIsCollection(object fieldValue,
