@@ -199,7 +199,7 @@ public sealed class DefinitionAssistantCollection
 		int index,
 		int newIndex)
 	{
-		var item = collection[index];
+		var item = GetByIndex(collection, index);
 		collection.RemoveAt(index);
 		collection.Insert(newIndex, item);
 		EditorGUI.FocusTextInControl(null);
@@ -232,7 +232,7 @@ public sealed class DefinitionAssistantCollection
 	private bool CheckFilter(IList collection,
 		int index)
 	{
-		var item = collection[index];
+		var item = GetByIndex(collection, index);
 		var primaryKey = GetPrimaryKey(item);
 		var filter = _filter.ToLower();
 		var result = primaryKey.ToLower().Contains(filter);
@@ -243,7 +243,7 @@ public sealed class DefinitionAssistantCollection
 	private bool TryGuiCollectionPrimitiveElement(IList collection,
 		int index)
 	{
-		var item = collection[index];
+		var item = GetByIndex(collection, index);
 		var elementType = item.GetType();
 
 		if (!elementType.IsPrimitive && elementType != typeof(string))
@@ -263,7 +263,7 @@ public sealed class DefinitionAssistantCollection
 	private void OnGuiCollectionObjectItem(IList collection,
 		int index)
 	{
-		var item = collection[index];
+		var item = GetByIndex(collection, index);
 		var title = GetGroupTitle(index, item);
 
 		using (new EditorVerticalGroup(17, "GroupBox"))
@@ -532,6 +532,19 @@ public sealed class DefinitionAssistantCollection
 		{
 			collection.Add(default);
 		}
+	}
+
+	private static object GetByIndex(IList collection,
+		int index)
+	{
+		var obj = collection[index];
+
+		if (obj == null)
+		{
+			collection.RemoveAt(index);
+		}
+
+		return obj;
 	}
 
 	#endregion

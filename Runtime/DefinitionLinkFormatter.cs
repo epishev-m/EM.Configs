@@ -4,11 +4,9 @@
 using MessagePack;
 using MessagePack.Formatters;
 
-public sealed class ConfigLinkFormatter<T> : IMessagePackFormatter<DefinitionLink<T>>
+public sealed class DefinitionLinkFormatter<T> : IMessagePackFormatter<DefinitionLink<T>>
 	where T : class
 {
-	#region IMessagePackFormatter
-
 	public void Serialize(ref MessagePackWriter writer,
 		DefinitionLink<T> value,
 		MessagePackSerializerOptions options)
@@ -42,8 +40,6 @@ public sealed class ConfigLinkFormatter<T> : IMessagePackFormatter<DefinitionLin
 
 		return link;
 	}
-
-	#endregion
 }
 
 }

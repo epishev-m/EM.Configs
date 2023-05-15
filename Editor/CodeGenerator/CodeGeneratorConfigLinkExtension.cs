@@ -17,10 +17,11 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\n\t{{\n\t\tif (definitionLink.Value != null)" +
 		"\n\t\t{{\n\t\t\treturn definitionLink.Value;\n\t\t}}" +
 		"\n\n\t\tvar all = definitionLink.GetAll(gameConfigs);" +
-		"\n\n\t\treturn all.FirstOrDefault(item => item.Id == definitionLink.Id);\n\t}}\n";
+		"\n\t\tdefinitionLink.Value = all.FirstOrDefault(item => item.Id == definitionLink.Id);" +
+		"\n\n\t\treturn definitionLink.Value;\n\t}}\n";
 
 	private const string GetAllTemplate =
-		"\n\tprivate static IEnumerable<{0}> GetAll(this ConfigLink<{0}> configLink," + 
+		"\n\tprivate static IEnumerable<{0}> GetAll(this DefinitionLink<{0}> definitionLink," + 
 		"\n\t\t{1} gameConfigs)" +
 		"\n\t{{\n\t\tvar resultList = new List<{0}>();" +
 		"{2}\n" +

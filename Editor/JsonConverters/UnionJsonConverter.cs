@@ -33,17 +33,24 @@ public sealed class UnionConverter : JsonConverter
 
 			var fields = unionAttribute.SubType.GetFields();
 			var found = true;
+			var fieldsCounter = 0;
 
 			foreach (var obj in jObject)
 			{
 				if (fields.Any(z => z.Name == obj.Key))
 				{
+					fieldsCounter++;
 					continue;
 				}
 
 				found = false;
 
 				break;
+			}
+
+			if (fieldsCounter != fields.Length)
+			{
+				found = false;
 			}
 
 			if (!found)
