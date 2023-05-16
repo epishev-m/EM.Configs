@@ -425,32 +425,15 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	private static object ChangeValue(string name,
 		object value)
 	{
-
 		return value switch
 		{
 			string sValue => EditorGUILayout.TextField(name, sValue),
-			bool sValue => ChangeValueBool(name, sValue),
+			bool sValue => EditorGUILayout.Toggle(name, sValue),
 			int sValue => EditorGUILayout.IntField(name, sValue),
 			float sValue => EditorGUILayout.FloatField(name, sValue),
 			double sValue => EditorGUILayout.DoubleField(name, sValue),
 			_ => false
 		};
-	}
-
-	private static bool ChangeValueBool(string name,
-		bool value)
-	{
-		bool result;
-
-		using (new EditorHorizontalGroup(17))
-		{
-			result = GUILayout.Toggle(value, name, GUI.skin.button);
-			EditorGUILayout.Space();
-			EditorGUILayout.Space();
-		}
-		EditorGUILayout.Space();
-
-		return result;
 	}
 
 	private DefinitionAssistantCollection GetCollection(FieldInfo field,
