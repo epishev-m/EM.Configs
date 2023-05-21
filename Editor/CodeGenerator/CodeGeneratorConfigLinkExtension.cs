@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Assistant.Editor;
-using Unity.Properties;
 
 public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 {
@@ -195,7 +194,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		foreach (var (type, namesList) in _fields)
 		{
 			var typeString = type.ToString().Replace('+', '.');
-			var rootType = _typeInfo.GetRootType();
+			var rootType = GetRootType(_typeInfo);
 			code += string.Format(UnwrapTemplate, typeString, rootType);
 			var contentGetAll = GetContentGetAll(namesList);
 			code += string.Format(GetAllTemplate, typeString, rootType, contentGetAll);
@@ -207,7 +206,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 	private string GenerateGetIds()
 	{
 		var code = string.Empty;
-		var rootType = _typeInfo.GetRootType();
+		var rootType = GetRootType(_typeInfo);
 		var content = GetContentGetIds();
 		code += string.Format(GetIdsTemplate, rootType);
 
@@ -244,6 +243,23 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		}
 
 		return content;
+	}
+
+	public static Type GetRootType(Type type)
+	{
+		if (type == null || type.IsInterface)
+		{
+			return null;
+		}
+
+		var baseType = type.IsValueType ? typeof (ValueType) : typeof (object);
+
+		while (baseType != type.BaseType)
+		{
+			type = type.BaseType;
+		}
+
+		return type;
 	}
 
 	#endregion
