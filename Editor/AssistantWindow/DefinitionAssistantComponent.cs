@@ -152,22 +152,20 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 		using (new EditorHorizontalGroup(17))
 		{
-			if (GUILayout.Button("Save"))
+			if (GUILayout.Button("Save ⇪", GUILayout.MaxWidth(70)))
 			{
 				Save();
 			}
 
-			if (GUILayout.Button("Reset"))
+			if (GUILayout.Button("Reset ↺", GUILayout.MaxWidth(70)))
 			{
 				Reset();
 				EditorGUI.FocusTextInControl(null);
 			}
 
-			EditorGUILayout.Space();
-
 			var buttonStyle = new GUIStyle(GUI.skin.button);
-			_info = GUILayout.Toggle(_info, "Info", buttonStyle);
-			_warning = GUILayout.Toggle(_warning, "Warning", buttonStyle);
+			_info = GUILayout.Toggle(_info, "Info ⓘ", buttonStyle, GUILayout.MaxWidth(80));
+			_warning = GUILayout.Toggle(_warning, "Warning ⓦ", buttonStyle, GUILayout.MaxWidth(80));
 		}
 	}
 
@@ -256,11 +254,10 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	private void OnGuiFields(object instance)
 	{
 		var fields = GetFields(instance);
-		var isShowLine = false;
 
 		foreach (var field in fields)
 		{
-			if (CheckInstanceAndFields(instance, field, ref isShowLine))
+			if (CheckInstanceAndFields(instance, field))
 			{
 				continue;
 			}
@@ -293,8 +290,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	}
 
 	private bool CheckInstanceAndFields(object instance,
-		FieldInfo field,
-		ref bool isShowLine)
+		FieldInfo field)
 	{
 		if (instance != _definitions)
 		{
@@ -306,18 +302,16 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			return true;
 		}
 
-		if (isShowLine)
-		{
-			//EditorLayoutUtility.Line();
-		}
-
-		isShowLine = true;
-
 		return false;
 	}
 
 	private static IEnumerable<FieldInfo> GetFields(object instance)
 	{
+		if (instance == null)
+		{
+			return new List<FieldInfo>();
+		}
+		
 		var type = instance.GetType();
 		var baseType = type.BaseType;
 		var fields = type.GetFields();

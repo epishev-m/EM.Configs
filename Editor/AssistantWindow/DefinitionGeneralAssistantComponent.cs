@@ -22,7 +22,7 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 
 	private bool _assetDbRefresh;
 
-	#region ScriptableObjectAssistantWindowComponent
+	#region ProjectSettingsAssistantComponent
 
 	public override string Name => "Definition General";
 

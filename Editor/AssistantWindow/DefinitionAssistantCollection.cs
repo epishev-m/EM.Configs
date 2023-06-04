@@ -146,19 +146,25 @@ public sealed class DefinitionAssistantCollection
 	private static void OnGuiCollectionPrimitiveElementButtons(IList collection,
 		int index)
 	{
-		if (GUILayout.Button("-", GUILayout.Width(20)))
+		if (GUILayout.Button("ⓧ", GUILayout.Width(20)))
 		{
 			RemoveElement(collection, index);
 		}
 
-		if (GUILayout.Button("up", GUILayout.Width(30)))
+		if (index < collection.Count - 1)
 		{
-			UpMoveElement(collection, index);
+			if (GUILayout.Button("↓", GUILayout.Width(30)))
+			{
+				UpMoveElement(collection, index);
+			}
 		}
 
-		if (GUILayout.Button("down", GUILayout.Width(50)))
+		if (index != 0)
 		{
-			DownMoveElement(collection, index);
+			if (GUILayout.Button("↑", GUILayout.Width(30)))
+			{
+				DownMoveElement(collection, index);
+			}
 		}
 	}
 
@@ -233,7 +239,12 @@ public sealed class DefinitionAssistantCollection
 		int index)
 	{
 		var item = GetByIndex(collection, index);
-		var primaryKey = GetPrimaryKey(item);
+
+		if (!TryGetPrimaryKey(item, out var primaryKey))
+		{
+			return true;
+		}
+		
 		var filter = _filter.ToLower();
 		var result = primaryKey.ToLower().Contains(filter);
 
@@ -244,6 +255,12 @@ public sealed class DefinitionAssistantCollection
 		int index)
 	{
 		var item = GetByIndex(collection, index);
+
+		if (item == null)
+		{
+			return false;
+		}
+		
 		var elementType = item.GetType();
 
 		if (!elementType.IsPrimitive && elementType != typeof(string))
@@ -288,15 +305,25 @@ public sealed class DefinitionAssistantCollection
 	private static string GetGroupTitle(int index,
 		object item)
 	{
-		var primaryKey = GetPrimaryKey(item);
-		var result = $"Index : {index} | PrimaryKey : \"{primaryKey}\"";
+		var result = $"Index : {index}";
+			
+		if (TryGetPrimaryKey(item, out var primaryKey))
+		{
+			result = $"Index : {index} | PrimaryKey : \"{primaryKey}\"";
+		}
 
 		return result;
 	}
 
-	private static string GetPrimaryKey(object item)
+	private static bool TryGetPrimaryKey(object item, out string primaryKey)
 	{
-		var primaryKey = "##";
+		primaryKey = "##";
+
+		if (item == null)
+		{
+			return false;
+		}
+		
 		var fields = item.GetType().GetFields();
 
 		foreach (var field in fields)
@@ -315,10 +342,10 @@ public sealed class DefinitionAssistantCollection
 				primaryKey = value.ToString();
 			}
 
-			break;
+			return true;
 		}
 
-		return primaryKey;
+		return false;
 	}
 
 	private static void OnGuiCollectionObjectElementTopPanel(IList collection,
@@ -326,21 +353,27 @@ public sealed class DefinitionAssistantCollection
 	{
 		using (new EditorHorizontalGroup(17))
 		{
-			if (GUILayout.Button("up", GUILayout.MaxWidth(80)))
-			{
-				UpMoveElement(collection, index);
-			}
-
-			if (GUILayout.Button("down", GUILayout.MaxWidth(80)))
-			{
-				DownMoveElement(collection, index);
-			}
-
-			GUILayout.FlexibleSpace();
-			
-			if (GUILayout.Button("remove", GUILayout.MaxWidth(80)))
+			if (GUILayout.Button("remove ⓧ", GUILayout.MaxWidth(80)))
 			{
 				RemoveElement(collection, index);
+			}
+			
+			GUILayout.Space(20);
+			
+			if (index < collection.Count - 1)
+			{
+				if (GUILayout.Button("↓", GUILayout.MaxWidth(30)))
+				{
+					UpMoveElement(collection, index);
+				}
+			}
+
+			if (index != 0)
+			{
+				if (GUILayout.Button("↑", GUILayout.MaxWidth(30)))
+				{
+					DownMoveElement(collection, index);
+				}
 			}
 		}
 	}
@@ -357,8 +390,13 @@ public sealed class DefinitionAssistantCollection
 				OnGuiCollectionMaxPanel();
 			}
 
-			EditorGUILayout.Space();
-			EditorLayoutUtility.ToolbarSearch(ref _filter, 17);
+			var item = GetByIndex(collection, 0);
+
+			if (TryGetPrimaryKey(item, out _))
+			{
+				EditorGUILayout.Space();
+				EditorLayoutUtility.ToolbarSearch(ref _filter, 17);
+			}
 		}
 	}
 
@@ -400,7 +438,10 @@ public sealed class DefinitionAssistantCollection
 	private void OnGuiCollectionAddTypePanel()
 	{
 		var options = _supportedTypes.Select(type => type.Name).ToArray();
-		_addTypeIndex = EditorGUILayout.Popup(_addTypeIndex, options);
+
+		_addTypeIndex = options.Length > 1 
+			? EditorGUILayout.Popup(_addTypeIndex, options) 
+			: 0;
 	}
 
 	private void OnGuiCollectionPagesPanel(IList collection)
@@ -410,25 +451,39 @@ public sealed class DefinitionAssistantCollection
 			return;
 		}
 
+		var ceilingCountPages = SetCollectionPageCounter(collection);
+
+		if (ceilingCountPages <= 1)
+		{
+			return;
+		}
+
+		GUI.enabled = _currentPage > 1;
+
 		if (GUILayout.Button("<"))
 		{
 			_currentPage--;
 			EditorGUI.FocusTextInControl(null);
 		}
 
-		OnGuiCollectionPageCounter(collection);
+		GUI.enabled = true;
+
+		_currentPage = EditorGUILayout.IntField(_currentPage, GUILayout.MaxWidth(50));
+		EditorGUILayout.LabelField($"/  {ceilingCountPages}", GUILayout.MaxWidth(60));
+
+		GUI.enabled = _currentPage < ceilingCountPages;
 
 		if (GUILayout.Button(">"))
 		{
 			_currentPage++;
 			EditorGUI.FocusTextInControl(null);
 		}
+
+		GUI.enabled = true;
 	}
 
-	private void OnGuiCollectionPageCounter(IList collection)
+	private int SetCollectionPageCounter(IList collection)
 	{
-		_currentPage = EditorGUILayout.IntField(_currentPage, GUILayout.MaxWidth(50));
-
 		var count = GetCountItemsGivenFilter(collection);
 		
 		if (count >= 1)
@@ -445,7 +500,7 @@ public sealed class DefinitionAssistantCollection
 		
 		_currentPage = Math.Clamp(_currentPage, 1, ceilingCountPages);
 
-		EditorGUILayout.LabelField($"/  {ceilingCountPages}", GUILayout.MaxWidth(60));
+		return ceilingCountPages;
 	}
 
 	private int GetCountItemsGivenFilter(IList collection)
@@ -479,6 +534,7 @@ public sealed class DefinitionAssistantCollection
 		if (_isMaxFlag && maxShowTemp > _maxShow)
 		{
 			_isMaxFlag = false;
+			EditorGUI.FocusTextInControl(null);
 		}
 
 		var isMaxFlagTemp = _isMaxFlag;
@@ -537,6 +593,16 @@ public sealed class DefinitionAssistantCollection
 	private static object GetByIndex(IList collection,
 		int index)
 	{
+		if (collection.Count == 0)
+		{
+			return null;
+		}
+
+		if (index < 0 || index >= collection.Count)
+		{
+			return null;
+		}
+		
 		var obj = collection[index];
 
 		if (obj == null)
