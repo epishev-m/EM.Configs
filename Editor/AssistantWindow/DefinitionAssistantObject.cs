@@ -33,7 +33,7 @@ public sealed class DefinitionAssistantObject
 		FieldInfo field,
 		bool useGroup)
 	{
-		if (useGroup)
+		if (!useGroup)
 		{
 			using var fadeGroup = new EditorFadeGroup(field.Name, _showExtraFields);
 
@@ -42,24 +42,29 @@ public sealed class DefinitionAssistantObject
 				return;
 			}
 
-			OnGuiObject(instance, field);
+			OnGuiTopPanel(instance, field);
+			
+			using (new EditorVerticalGroup(17))
+			{
+				OnGuiObject(instance, field);
+			}
 		}
 		else
 		{
-			OnGuiObject(instance, field);
+			OnGuiTopPanel(instance, field);
+			
+			using (new EditorVerticalGroup(17, "GroupBox"))
+			{
+				OnGuiObject(instance, field);
+			}
 		}
 	}
 
 	private void OnGuiObject(object instance,
 		FieldInfo field)
 	{
-		OnGuiTopPanel(instance, field);
 		var fieldValue = GetValue(instance, field);
-
-		using (new EditorVerticalGroup(17, "GroupBox"))
-		{
-			_guiFields.Invoke(fieldValue);
-		}
+		_guiFields.Invoke(fieldValue);
 	}
 
 	private void FillSupportedTypes(FieldInfo field)

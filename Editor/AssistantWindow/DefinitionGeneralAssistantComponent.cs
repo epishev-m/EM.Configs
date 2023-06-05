@@ -192,7 +192,7 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 		{
 			Converters =
 			{
-				new DefinitionLinkJsonConverter(),
+				new LinkDefinitionJsonConverter(),
 				new UnionConverter()
 			}
 		};

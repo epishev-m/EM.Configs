@@ -51,15 +51,29 @@ public sealed class DefinitionAssistantCollection
 	}
 
 	public void DoLayoutList(FieldInfo field,
+		IList collection,
+		bool useGroup)
+	{
+		if (!useGroup)
+		{
+			using var fadeGroup = new EditorFadeGroup(field.Name, _showExtraFields);
+
+			if (!fadeGroup.IsVisible)
+			{
+				return;
+			}
+
+			OnGuiCollection(field, collection);
+		}
+		else
+		{
+			OnGuiCollection(field, collection);
+		}
+	}
+
+	private void OnGuiCollection(FieldInfo field,
 		IList collection)
 	{
-		using var fadeGroup = new EditorFadeGroup(field.Name, _showExtraFields);
-
-		if (!fadeGroup.IsVisible)
-		{
-			return;
-		}
-
 		FillExtraFieldElements(collection.Count);
 		FillSupportedTypes(field);
 
@@ -68,21 +82,13 @@ public sealed class DefinitionAssistantCollection
 			return;
 		}
 
-		using (new EditorVerticalGroup(17))
+		OnGuiCollectionTopPanel(collection);
+
+		if (!CheckCollectionCount(collection))
 		{
-			OnGuiCollectionTopPanel(collection);
-
-			if (!CheckCollectionCount(collection))
-			{
-				return;
-			}
-
-			OnGuiCollection(collection);
+			return;
 		}
-	}
 
-	private void OnGuiCollection(IList collection)
-	{
 		var count = GetCountItemsGivenFilter(collection);
 
 		if (_isMaxFlag)
@@ -95,7 +101,7 @@ public sealed class DefinitionAssistantCollection
 			EditorGUILayout.Space();
 			EditorGUILayout.HelpBox("There are no elements that match the filter", MessageType.Info);
 			EditorGUILayout.Space();
-			
+
 			return;
 		}
 
@@ -121,7 +127,7 @@ public sealed class DefinitionAssistantCollection
 	{
 		var elementType = _supportedTypes[_addTypeIndex];
 
-		if (!elementType.IsSubclassOf(typeof(DefinitionLink)))
+		if (!elementType.IsSubclassOf(typeof(LinkDefinition)))
 		{
 			return true;
 		}

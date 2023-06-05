@@ -4,11 +4,11 @@
 using MessagePack;
 using MessagePack.Formatters;
 
-public sealed class DefinitionLinkFormatter<T> : IMessagePackFormatter<DefinitionLink<T>>
+public sealed class LinkDefinitionFormatter<T> : IMessagePackFormatter<LinkDefinition<T>>
 	where T : class
 {
 	public void Serialize(ref MessagePackWriter writer,
-		DefinitionLink<T> value,
+		LinkDefinition<T> value,
 		MessagePackSerializerOptions options)
 	{
 		if (value == null)
@@ -21,7 +21,7 @@ public sealed class DefinitionLinkFormatter<T> : IMessagePackFormatter<Definitio
 		}
 	}
 
-	public DefinitionLink<T> Deserialize(ref MessagePackReader reader,
+	public LinkDefinition<T> Deserialize(ref MessagePackReader reader,
 		MessagePackSerializerOptions options)
 	{
 		if (reader.TryReadNil())
@@ -33,7 +33,7 @@ public sealed class DefinitionLinkFormatter<T> : IMessagePackFormatter<Definitio
 		var stringFormatter = resolver.GetFormatterWithVerify<string>();
 		var id =  stringFormatter.Deserialize(ref reader, options);
 
-		var link = new DefinitionLink<T>
+		var link = new LinkDefinition<T>
 		{
 			Id = id
 		};

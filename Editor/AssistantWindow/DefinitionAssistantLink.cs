@@ -21,7 +21,7 @@ public sealed class DefinitionAssistantLink
 		FieldInfo field,
 		object fieldValue)
 	{
-		if (fieldValue is not DefinitionLink link)
+		if (fieldValue is not LinkDefinition link)
 		{
 			return;
 		}
@@ -39,7 +39,7 @@ public sealed class DefinitionAssistantLink
 	}
 
 	private List<string> GetOptions(object definitions,
-		DefinitionLink link)
+		LinkDefinition link)
 	{
 		var options = _externalHelper.GetIds(link, definitions).ToList();
 

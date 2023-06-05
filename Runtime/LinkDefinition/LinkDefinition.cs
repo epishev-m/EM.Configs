@@ -5,15 +5,15 @@ using System;
 using Foundation;
 
 [Serializable]
-public abstract class DefinitionLink
+public abstract class LinkDefinition
 {
 	public readonly Type Type;
 
 	public string Id;
 
-	#region ConfigLink
+	#region LinkDefinition
 
-	protected DefinitionLink(Type entryType)
+	protected LinkDefinition(Type entryType)
 	{
 		Requires.NotNullParam(entryType, nameof(entryType));
 
@@ -24,14 +24,14 @@ public abstract class DefinitionLink
 }
 
 [Serializable]
-public sealed class DefinitionLink<T> : DefinitionLink
+public sealed class LinkDefinition<T> : LinkDefinition
 	where T : class
 {
 	[NonSerialized] public T Value;
 
-	#region ConfigLink
+	#region LinkDefinition
 
-	public DefinitionLink()
+	public LinkDefinition()
 		: base(typeof(T))
 	{
 	}

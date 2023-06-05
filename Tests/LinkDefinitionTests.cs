@@ -2,10 +2,10 @@ using System;
 using EM.Configs;
 using NUnit.Framework;
 
-internal sealed class DefinitionLinkTests
+internal sealed class LinkDefinitionTests
 {
 	[Test]
-	public void DefinitionLink_Constructor_ExceptionType()
+	public void LinkDefinition_Constructor_ExceptionType()
 	{
 		// Arrange
 		var actual = false;
@@ -13,7 +13,7 @@ internal sealed class DefinitionLinkTests
 		// Act
 		try
 		{
-			var unused = new DefinitionLinkTest(null);
+			var unused = new LinkDefinitionTest(null);
 		}
 		catch (ArgumentNullException)
 		{
@@ -25,17 +25,17 @@ internal sealed class DefinitionLinkTests
 	}
 
 	[Test]
-	public void DefinitionLinkT_Constructor_TypeAndName()
+	public void LinkDefinitionT_Constructor_TypeAndName()
 	{
 		const string expectedName = "test";
 
 		// Act
-		var definitionLink = new DefinitionLink<Test>
+		var linkDefinition = new LinkDefinition<Test>
 		{
 			Id = expectedName
 		};
-		var actualType = definitionLink.Type;
-		var actualName = definitionLink.Id;
+		var actualType = linkDefinition.Type;
+		var actualName = linkDefinition.Id;
 
 		// Assert
 		Assert.AreEqual(typeof(Test), actualType);
@@ -44,9 +44,9 @@ internal sealed class DefinitionLinkTests
 
 	#region Nested
 
-	private sealed class DefinitionLinkTest : DefinitionLink
+	private sealed class LinkDefinitionTest : LinkDefinition
 	{
-		public DefinitionLinkTest(Type entryType)
+		public LinkDefinitionTest(Type entryType)
 			: base(entryType)
 		{
 		}

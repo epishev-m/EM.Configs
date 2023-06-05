@@ -30,6 +30,8 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	private readonly Dictionary<string, DefinitionAssistantObject> _objects = new();
 
 	private readonly Dictionary<string, DefinitionAssistantLink> _links = new();
+	
+	private readonly Dictionary<string, DefinitionAssistantSpriteAtlas> _spriteAtlases = new();
 
 	private bool _info;
 
@@ -195,7 +197,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		{
 			Converters =
 			{
-				new DefinitionLinkJsonConverter()
+				new LinkDefinitionJsonConverter()
 			},
 			Formatting = Formatting.Indented
 		};
@@ -234,7 +236,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			ObjectCreationHandling = ObjectCreationHandling.Replace,
 			Converters =
 			{
-				new DefinitionLinkJsonConverter(),
+				new LinkDefinitionJsonConverter(),
 				new UnionConverter()
 			}
 		};
@@ -258,6 +260,11 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		foreach (var field in fields)
 		{
 			if (CheckInstanceAndFields(instance, field))
+			{
+				continue;
+			}
+
+			if (CheckSpriteAtlas(instance, field))
 			{
 				continue;
 			}
@@ -330,6 +337,26 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		return resultList;
 	}
 
+	private bool CheckSpriteAtlas(object instance,
+		FieldInfo field)
+	{
+		var fieldType = field.FieldType;
+		var fieldValue = field.GetValue(instance);
+
+		if (fieldType != typeof(SpriteAtlasDefinition))
+		{
+			return false;
+		}
+		
+		fieldValue ??= Activator.CreateInstance(fieldType);
+		var spriteAtlas = GetSpriteAtlas(field, fieldValue);
+		var useGroup = instance == _definitions;
+		spriteAtlas.DoLayoutSpriteAtlas(field, fieldValue, useGroup);
+		field.SetValue(instance, fieldValue);
+
+		return true;
+	}
+
 	private static bool CheckString(object instance,
 		FieldInfo field)
 	{
@@ -359,7 +386,8 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		}
 
 		var collectionGui = GetCollection(field, collection);
-		collectionGui.DoLayoutList(field, collection);
+		var useGroup = instance == _definitions;
+		collectionGui.DoLayoutList(field, collection, useGroup);
 		field.SetValue(instance, collection);
 
 		return true;
@@ -371,7 +399,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		var fieldType = field.FieldType;
 		var fieldValue = field.GetValue(instance);
 
-		if (!fieldType.IsSubclassOf(typeof(DefinitionLink)))
+		if (!fieldType.IsSubclassOf(typeof(LinkDefinition)))
 		{
 			return false;
 		}
@@ -395,7 +423,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		}
 
 		var obj = GetObject(instance, field);
-		var useGroup = _fields.Count > 1 && instance == _definitions;
+		var useGroup = instance == _definitions;
 		obj.DoLayoutObject(instance, field, useGroup);
 
 		return true;
@@ -482,6 +510,24 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		_links.Add(key, resultLink);
 
 		return resultLink;
+	}
+
+	private DefinitionAssistantSpriteAtlas GetSpriteAtlas(FieldInfo field,
+		object instance)
+	{
+		var fieldHashCode = field.GetHashCode();
+		var instanceHashCode = instance.GetHashCode();
+		var key = $"{fieldHashCode}{instanceHashCode}";
+
+		if (_spriteAtlases.TryGetValue(key, out var resultSpriteAtlas))
+		{
+			return resultSpriteAtlas;
+		}
+		
+		resultSpriteAtlas = new DefinitionAssistantSpriteAtlas(_window);
+		_spriteAtlases.Add(key, resultSpriteAtlas);
+
+		return resultSpriteAtlas;
 	}
 
 	#endregion

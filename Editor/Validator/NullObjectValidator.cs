@@ -92,7 +92,7 @@ public sealed class NullObjectValidator : IConfigsValidator
 			return true;
 		}
 
-		if (fieldValue is DefinitionLink)
+		if (fieldValue is LinkDefinition)
 		{
 			return true;
 		}

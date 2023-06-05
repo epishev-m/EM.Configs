@@ -11,16 +11,16 @@ using Assistant.Editor;
 public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 {
 	private const string UnwrapTemplate =
-		"\n\tpublic static {0} Unwrap(this DefinitionLink<{0}> definitionLink," + 
+		"\n\tpublic static {0} Unwrap(this LinkDefinition<{0}> linkDefinition," + 
 		"\n\t\t{1} gameConfigs)" +
-		"\n\t{{\n\t\tif (definitionLink.Value != null)" +
-		"\n\t\t{{\n\t\t\treturn definitionLink.Value;\n\t\t}}" +
-		"\n\n\t\tvar all = definitionLink.GetAll(gameConfigs);" +
-		"\n\t\tdefinitionLink.Value = all.FirstOrDefault(item => item.Id == definitionLink.Id);" +
-		"\n\n\t\treturn definitionLink.Value;\n\t}}\n";
+		"\n\t{{\n\t\tif (linkDefinition.Value != null)" +
+		"\n\t\t{{\n\t\t\treturn linkDefinition.Value;\n\t\t}}" +
+		"\n\n\t\tvar all = linkDefinition.GetAll(gameConfigs);" +
+		"\n\t\tlinkDefinition.Value = all.FirstOrDefault(item => item.Id == linkDefinition.Id);" +
+		"\n\n\t\treturn linkDefinition.Value;\n\t}}\n";
 
 	private const string GetAllTemplate =
-		"\n\tprivate static IEnumerable<{0}> GetAll(this DefinitionLink<{0}> definitionLink," + 
+		"\n\tprivate static IEnumerable<{0}> GetAll(this LinkDefinition<{0}> linkDefinition," + 
 		"\n\t\t{1} gameConfigs)" +
 		"\n\t{{\n\t\tvar resultList = new List<{0}>();" +
 		"{2}\n" +
@@ -31,18 +31,18 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\n\t\t{{\n\t\t\tresultList.AddRange(gameConfigs{0});\n\t\t}}";
 
 	private const string GetIdsTemplate =
-		"\n\tpublic static IEnumerable<string> GetIds(this DefinitionLink definitionLink," +
+		"\n\tpublic static IEnumerable<string> GetIds(this LinkDefinition linkDefinition," +
 		"\n\t\t{0} gameConfigs)\n\t{{\n";
 
 	private const string GetIdsSwitch =
-		"\t\tswitch (definitionLink)" +
+		"\t\tswitch (linkDefinition)" +
 		"\n\t\t{{\n\t\t{0}\n\t\t}}\n\n";
 
 	private const string GetIdsReturn =
 		"\t\treturn new List<string>();\n\t}\n";
 
 	private const string ContentGetIdsTemplate =
-		"\tcase DefinitionLink<{0}> link:" +
+		"\tcase LinkDefinition<{0}> link:" +
 		"\n\t\t\t{{\n\t\t\t\tvar all = link.GetAll(gameConfigs);" +
 		"\n\t\t\t\treturn all.Select(l => l.Id);\n\t\t\t}}";
 
@@ -168,7 +168,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 			return true;
 		}
 
-		if (typeof(DefinitionLink).IsAssignableFrom(fieldInfo.FieldType))
+		if (typeof(LinkDefinition).IsAssignableFrom(fieldInfo.FieldType))
 		{
 			return true;
 		}
