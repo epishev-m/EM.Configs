@@ -393,7 +393,7 @@ public sealed class DefinitionAssistantCollection
 				OnGuiCollectionAddPanel(collection);
 				GUILayout.FlexibleSpace();
 				OnGuiCollectionPagesPanel(collection);
-				OnGuiCollectionMaxPanel();
+				OnGuiCollectionMaxPanel(collection);
 			}
 
 			var item = GetByIndex(collection, 0);
@@ -532,8 +532,16 @@ public sealed class DefinitionAssistantCollection
 		return ceilingCountPages;
 	}
 
-	private void OnGuiCollectionMaxPanel()
+	private void OnGuiCollectionMaxPanel(IList collection)
 	{
+		if (collection.Count <= 1)
+		{
+			_isMaxFlag = true;
+			_maxShow = 1;
+
+			return;
+		}
+
 		var maxShowTemp = _maxShow;
 		_maxShow = EditorGUILayout.IntField(_maxShow, GUILayout.MaxWidth(50));
 
