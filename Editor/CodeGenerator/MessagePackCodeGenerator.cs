@@ -23,6 +23,7 @@ public sealed class MessagePackCodeGenerator
 
 	public void Execute(Action collback)
 	{
+		var outputFile = "\\MessagePackGenerate.cs";
 		var psi = new ProcessStartInfo
 		{
 			CreateNoWindow = true,
@@ -33,7 +34,7 @@ public sealed class MessagePackCodeGenerator
 			RedirectStandardError = true,
 			UseShellExecute = false,
 			FileName = "mpc",
-			Arguments = $"-i {_inputPath} -o {_outputPath}",
+			Arguments = $"-i {_inputPath} -o {_outputPath + outputFile} -n EM.Configs",
 			WorkingDirectory = Application.dataPath
 		};
 

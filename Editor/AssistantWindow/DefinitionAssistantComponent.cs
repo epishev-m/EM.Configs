@@ -21,7 +21,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private readonly IDefinitionAssistantHelper _externalHelper;
 
-	private readonly T _definitions;
+	private readonly T _definition;
 
 	private readonly List<FieldInfo> _fields = new();
 
@@ -51,12 +51,12 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	{
 		OnGuiTopPanel();
 
-		if (_definitions == null)
+		if (_definition == null)
 		{
 			return;
 		}
 
-		OnGuiFields(_definitions);
+		OnGuiFields(_definition);
 	}
 
 	#endregion
@@ -65,12 +65,12 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	protected DefinitionAssistantComponent(IDefinitionAssistantHelper externalHelper,
 		string name,
-		T definitions,
+		T definition,
 		params string[] fieldNames)
 	{
 		Name = name;
 		_externalHelper = externalHelper;
-		_definitions = definitions;
+		_definition = definition;
 
 		FieldFields(fieldNames);
 	}
@@ -105,7 +105,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private void OnGuiCreateButton()
 	{
-		if (_definitions == null)
+		if (_definition == null)
 		{
 			EditorGUILayout.HelpBox("File not found. Create a new object.", MessageType.Warning);
 		}
@@ -147,7 +147,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private void OnGuiButtons()
 	{
-		if (_definitions == null)
+		if (_definition == null)
 		{
 			return;
 		}
@@ -173,7 +173,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private void Save()
 	{
-		if (_definitions == null)
+		if (_definition == null)
 		{
 			return;
 		}
@@ -202,7 +202,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			Formatting = Formatting.Indented
 		};
 
-		var json = JsonConvert.SerializeObject(_definitions, jsonSettings);
+		var json = JsonConvert.SerializeObject(_definition, jsonSettings);
 		var jObject = JObject.Parse(json);
 		var removeList = new List<string>();
 
@@ -245,7 +245,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		{
 			using var streamReader = new StreamReader(filePath);
 			var json = streamReader.ReadToEnd();
-			JsonConvert.PopulateObject(json, _definitions, jsonSettings);
+			JsonConvert.PopulateObject(json, _definition, jsonSettings);
 		}
 		catch (IOException e)
 		{
@@ -299,7 +299,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	private bool CheckInstanceAndFields(object instance,
 		FieldInfo field)
 	{
-		if (instance != _definitions)
+		if (instance != _definition)
 		{
 			return false;
 		}
@@ -350,7 +350,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		
 		fieldValue ??= Activator.CreateInstance(fieldType);
 		var spriteAtlas = GetSpriteAtlas(field, fieldValue);
-		var useGroup = instance == _definitions;
+		var useGroup = instance == _definition;
 		spriteAtlas.DoLayoutSpriteAtlas(field, fieldValue, useGroup);
 		field.SetValue(instance, fieldValue);
 
@@ -386,7 +386,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		}
 
 		var collectionGui = GetCollection(field, collection);
-		var useGroup = instance == _definitions;
+		var useGroup = instance == _definition;
 		collectionGui.DoLayoutList(field, collection, useGroup);
 		field.SetValue(instance, collection);
 
@@ -406,7 +406,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 		fieldValue ??= Activator.CreateInstance(fieldType);
 		var link = GetLink(field, fieldValue);
-		link.DoLayoutLink(_definitions, field, fieldValue);
+		link.DoLayoutLink(_definition, field, fieldValue);
 		field.SetValue(instance, fieldValue);
 
 		return true;
@@ -423,7 +423,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		}
 
 		var obj = GetObject(instance, field);
-		var useGroup = instance == _definitions;
+		var useGroup = instance == _definition;
 		obj.DoLayoutObject(instance, field, useGroup);
 
 		return true;
