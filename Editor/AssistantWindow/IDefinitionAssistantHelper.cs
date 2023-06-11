@@ -5,8 +5,7 @@ using System.Collections.Generic;
 
 public interface IDefinitionAssistantHelper
 {
-	IEnumerable<string> GetIds(LinkDefinition linkDefinition,
-		object config);
+	IEnumerable<string> GetIds(LinkDefinition linkDefinition);
 }
 
 }

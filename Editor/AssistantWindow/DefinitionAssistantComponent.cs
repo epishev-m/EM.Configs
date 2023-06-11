@@ -289,6 +289,11 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 				continue;
 			}
 
+			if (CheckEnum(instance, field))
+			{
+				continue;
+			}
+
 			if (!CheckBaseType(instance, field))
 			{
 				EditorGUILayout.HelpBox($"Type {field.FieldType} not supported!", MessageType.Warning);
@@ -406,7 +411,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 		fieldValue ??= Activator.CreateInstance(fieldType);
 		var link = GetLink(field, fieldValue);
-		link.DoLayoutLink(_definition, field, fieldValue);
+		link.DoLayoutLink(field, fieldValue);
 		field.SetValue(instance, fieldValue);
 
 		return true;
@@ -429,6 +434,24 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		return true;
 	}
 
+	private static bool CheckEnum(object instance,
+		FieldInfo field)
+	{
+		var fieldType = field.FieldType;
+
+		if (!fieldType.IsEnum)
+		{
+			return false;
+		}
+
+		var options = Enum.GetNames(fieldType);
+		var value = field.GetValue(instance);
+		value = EditorGUILayout.Popup(field.Name, (int) value, options.ToArray());
+		field.SetValue(instance, value);
+
+		return true;
+	}
+
 	private static bool CheckBaseType(object instance,
 		FieldInfo field)
 	{
@@ -438,7 +461,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		}
 
 		var obj = field.GetValue(instance);
-		var value = ChangeValue(field.Name, value: obj);
+		var value = ChangeValue(field.Name, obj);
 		field.SetValue(instance, value);
 
 		return true;
@@ -452,6 +475,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			string sValue => EditorGUILayout.TextField(name, sValue),
 			bool sValue => EditorGUILayout.Toggle(name, sValue),
 			int sValue => EditorGUILayout.IntField(name, sValue),
+			long sValue => EditorGUILayout.LongField(name, sValue),
 			float sValue => EditorGUILayout.FloatField(name, sValue),
 			double sValue => EditorGUILayout.DoubleField(name, sValue),
 			_ => false

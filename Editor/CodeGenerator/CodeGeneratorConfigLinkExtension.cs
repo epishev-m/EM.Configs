@@ -10,29 +10,29 @@ using Assistant.Editor;
 
 public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 {
+	private const string DefinitionTemplate = "\n\tpublic static {0} Definition;\n";
+
 	private const string UnwrapTemplate =
-		"\n\tpublic static {0} Unwrap(this LinkDefinition<{0}> linkDefinition," + 
-		"\n\t\t{1} gameConfigs)" +
+		"\n\tpublic static {0} Unwrap(this LinkDefinition<{0}> linkDefinition)" +
 		"\n\t{{\n\t\tif (linkDefinition.Value != null)" +
 		"\n\t\t{{\n\t\t\treturn linkDefinition.Value;\n\t\t}}" +
-		"\n\n\t\tvar all = linkDefinition.GetAll(gameConfigs);" +
+		"\n\n\t\tvar all = linkDefinition.GetAll();" +
 		"\n\t\tlinkDefinition.Value = all.FirstOrDefault(item => item.Id == linkDefinition.Id);" +
 		"\n\n\t\treturn linkDefinition.Value;\n\t}}\n";
 
 	private const string GetAllTemplate =
-		"\n\tprivate static IEnumerable<{0}> GetAll(this LinkDefinition<{0}> linkDefinition," + 
-		"\n\t\t{1} gameConfigs)" +
+		"\n\tprivate static IEnumerable<{0}> GetAll(this LinkDefinition<{0}> linkDefinition)" +
 		"\n\t{{\n\t\tvar resultList = new List<{0}>();" +
 		"{2}\n" +
 		"\n\t\treturn resultList;\n\t}}\n";
 	
 	private const string ContentGetAllTemplate =
-		"\n\n\t\tif (gameConfigs{0} != null)" +
-		"\n\t\t{{\n\t\t\tresultList.AddRange(gameConfigs{0});\n\t\t}}";
+		"\n\n\t\tif (Definition{0} != null)" +
+		"\n\t\t{{\n\t\t\tresultList.AddRange(Definition{0});\n\t\t}}";
 
 	private const string GetIdsTemplate =
-		"\n\tpublic static IEnumerable<string> GetIds(this LinkDefinition linkDefinition," +
-		"\n\t\t{0} gameConfigs)\n\t{{\n";
+		"\n\tpublic static IEnumerable<string> GetIds(this LinkDefinition linkDefinition)" +
+		"\n\t{{\n";
 
 	private const string GetIdsSwitch =
 		"\t\tswitch (linkDefinition)" +
@@ -43,7 +43,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 
 	private const string ContentGetIdsTemplate =
 		"\tcase LinkDefinition<{0}> link:" +
-		"\n\t\t\t{{\n\t\t\t\tvar all = link.GetAll(gameConfigs);" +
+		"\n\t\t\t{{\n\t\t\t\tvar all = link.GetAll();" +
 		"\n\t\t\t\treturn all.Select(l => l.Id);\n\t\t\t}}";
 
 	private readonly TypeInfo _typeInfo;
@@ -79,10 +79,10 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 			if (TryGetElementType(fieldInfo, out var elementType))
 			{
 				AddField(elementType, $"{path}.{fieldInfo.Name}");
-				
+
 				continue;
 			}
-			
+
 			if (CheckExcludedClasses(fieldInfo))
 			{
 				continue;
@@ -179,12 +179,19 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 	private string GenerateCode()
 	{
 		var code = string.Empty;
+		var definition = GenerateDefinition();
+		code += definition;
 		var unwrap = GenerateUnwrap();
 		code += unwrap;
 		var getIds = GenerateGetIds();
 		code += getIds;
 
 		return code;
+	}
+
+	private string GenerateDefinition()
+	{
+		return string.Format(DefinitionTemplate, _typeInfo);
 	}
 
 	private string GenerateUnwrap()

@@ -43,7 +43,7 @@ public sealed class DefinitionAssistantObject
 			}
 
 			OnGuiTopPanel(instance, field);
-			
+
 			using (new EditorVerticalGroup(17))
 			{
 				OnGuiObject(instance, field);
@@ -52,7 +52,7 @@ public sealed class DefinitionAssistantObject
 		else
 		{
 			OnGuiTopPanel(instance, field);
-			
+
 			using (new EditorVerticalGroup(17, "GroupBox"))
 			{
 				OnGuiObject(instance, field);
@@ -96,26 +96,43 @@ public sealed class DefinitionAssistantObject
 
 		using (new EditorVerticalGroup(17, "GroupBox"))
 		{
-			using (new EditorHorizontalGroup())
-			{
-				OnGuiCreatePanel(instance, field);
-				GUILayout.FlexibleSpace();
-			}
+			OnGUiCurrentType(instance, field);
+			OnGuiCreatePanel(instance, field);
 		}
 	}
 
 	private void OnGuiCreatePanel(object instance,
 		FieldInfo field)
 	{
-		var options = _supportedTypes.Select(type => type.Name).ToArray();
-		_addTypeIndex = EditorGUILayout.Popup(_addTypeIndex, options);
-
-		EditorGUILayout.Space(13);
-
-		if (GUILayout.Button("Create"))
+		using (new EditorHorizontalGroup())
 		{
-			CreateValue(instance, field);
+			var options = _supportedTypes.Select(type => type.Name).ToArray();
+			_addTypeIndex = EditorGUILayout.Popup(_addTypeIndex, options);
+
+			EditorGUILayout.Space(13);
+
+			if (GUILayout.Button("Create"))
+			{
+				CreateValue(instance, field);
+			}
+
+			GUILayout.FlexibleSpace();
 		}
+	}
+
+	private static void OnGUiCurrentType(object instance,
+		FieldInfo fieldInfo)
+	{
+		var value = fieldInfo.GetValue(instance);
+
+		if (value == null)
+		{
+			return;
+		}
+
+		GUI.enabled = false;
+		EditorGUILayout.TextField("Current type:", value.GetType().Name);
+		GUI.enabled = true;
 	}
 
 	private object GetValue(object instance,

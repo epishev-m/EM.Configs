@@ -577,6 +577,10 @@ public sealed class DefinitionAssistantCollection
 		{
 			collection.Add(0);
 		}
+		if (elementType == typeof(long))
+		{
+			collection.Add(0);
+		}
 		else if (elementType == typeof(float))
 		{
 			collection.Add(0f);

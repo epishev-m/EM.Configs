@@ -17,8 +17,7 @@ public sealed class DefinitionAssistantLink
 		_externalHelper = externalHelper;
 	}
 
-	public void DoLayoutLink(object definitions,
-		FieldInfo field,
+	public void DoLayoutLink(FieldInfo field,
 		object fieldValue)
 	{
 		if (fieldValue is not LinkDefinition link)
@@ -26,7 +25,7 @@ public sealed class DefinitionAssistantLink
 			return;
 		}
 
-		var options = GetOptions(definitions, link);
+		var options = GetOptions(link);
 		var index = options.IndexOf(link.Id);
 
 		if (index == -1)
@@ -38,10 +37,9 @@ public sealed class DefinitionAssistantLink
 		link.Id = options[index];
 	}
 
-	private List<string> GetOptions(object definitions,
-		LinkDefinition link)
+	private List<string> GetOptions(LinkDefinition link)
 	{
-		var options = _externalHelper.GetIds(link, definitions).ToList();
+		var options = _externalHelper.GetIds(link).ToList();
 
 		if (!string.IsNullOrWhiteSpace(link.Id))
 		{
