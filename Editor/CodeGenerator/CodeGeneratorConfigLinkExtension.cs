@@ -10,7 +10,11 @@ using Assistant.Editor;
 
 public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 {
-	private const string DefinitionTemplate = "\n\tpublic static {0} Definition;\n";
+	private const string DefinitionTemplate = "\n\tpublic static {0} Definition;" + 
+		"\n\n\tpublic static void SetConfig({0} _definition)" +
+		"\n\t{{\n\t\tif (Definition != null)" +
+		"\n\t\t{{\n\t\t\treturn;\n\t\t}}" +
+		"\n\n\t\tDefinition = _definition;\n\t}}\n";
 
 	private const string UnwrapTemplate =
 		"\n\tpublic static {0} Unwrap(this LinkDefinition<{0}> linkDefinition)" +
