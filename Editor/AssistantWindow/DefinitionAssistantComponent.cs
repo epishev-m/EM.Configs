@@ -21,7 +21,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private readonly IDefinitionAssistantHelper _externalHelper;
 
-	private readonly T _definition;
+	private readonly T _config;
 
 	private readonly List<FieldInfo> _fields = new();
 
@@ -51,12 +51,12 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	{
 		OnGuiTopPanel();
 
-		if (_definition == null)
+		if (_config == null)
 		{
 			return;
 		}
 
-		OnGuiFields(_definition);
+		OnGuiFields(_config);
 	}
 
 	#endregion
@@ -65,12 +65,12 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	protected DefinitionAssistantComponent(IDefinitionAssistantHelper externalHelper,
 		string name,
-		T definition,
+		T config,
 		params string[] fieldNames)
 	{
 		Name = name;
 		_externalHelper = externalHelper;
-		_definition = definition;
+		_config = config;
 
 		FieldFields(fieldNames);
 	}
@@ -105,7 +105,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private void OnGuiCreateButton()
 	{
-		if (_definition == null)
+		if (_config == null)
 		{
 			EditorGUILayout.HelpBox("File not found. Create a new object.", MessageType.Warning);
 		}
@@ -147,7 +147,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private void OnGuiButtons()
 	{
-		if (_definition == null)
+		if (_config == null)
 		{
 			return;
 		}
@@ -173,7 +173,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	private void Save()
 	{
-		if (_definition == null)
+		if (_config == null)
 		{
 			return;
 		}
@@ -202,7 +202,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			Formatting = Formatting.Indented
 		};
 
-		var json = JsonConvert.SerializeObject(_definition, jsonSettings);
+		var json = JsonConvert.SerializeObject(_config, jsonSettings);
 		var jObject = JObject.Parse(json);
 		var removeList = new List<string>();
 
@@ -245,7 +245,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		{
 			using var streamReader = new StreamReader(filePath);
 			var json = streamReader.ReadToEnd();
-			JsonConvert.PopulateObject(json, _definition, jsonSettings);
+			JsonConvert.PopulateObject(json, _config, jsonSettings);
 		}
 		catch (IOException e)
 		{
@@ -304,7 +304,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 	private bool CheckInstanceAndFields(object instance,
 		FieldInfo field)
 	{
-		if (instance != _definition)
+		if (instance != _config)
 		{
 			return false;
 		}
@@ -355,7 +355,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		
 		fieldValue ??= Activator.CreateInstance(fieldType);
 		var spriteAtlas = GetSpriteAtlas(field, fieldValue);
-		var useGroup = instance == _definition;
+		var useGroup = instance == _config;
 		spriteAtlas.DoLayoutSpriteAtlas(field, fieldValue, useGroup);
 		field.SetValue(instance, fieldValue);
 
@@ -391,7 +391,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		}
 
 		var collectionGui = GetCollection(field, collection);
-		var useGroup = instance == _definition;
+		var useGroup = instance == _config;
 		collectionGui.DoLayoutList(field, collection, useGroup);
 		field.SetValue(instance, collection);
 
@@ -428,7 +428,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		}
 
 		var obj = GetObject(instance, field);
-		var useGroup = instance == _definition;
+		var useGroup = instance == _config;
 		obj.DoLayoutObject(instance, field, useGroup);
 
 		return true;
