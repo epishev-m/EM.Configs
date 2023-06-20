@@ -193,6 +193,7 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 			Converters =
 			{
 				new LinkDefinitionJsonConverter(),
+				new ColorJsonConverter(),
 				new UnionConverter()
 			}
 		};

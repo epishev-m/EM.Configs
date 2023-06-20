@@ -197,7 +197,8 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		{
 			Converters =
 			{
-				new LinkDefinitionJsonConverter()
+				new LinkDefinitionJsonConverter(),
+				new ColorJsonConverter()
 			},
 			Formatting = Formatting.Indented
 		};
@@ -237,6 +238,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			Converters =
 			{
 				new LinkDefinitionJsonConverter(),
+				new ColorJsonConverter(),
 				new UnionConverter()
 			}
 		};
@@ -280,6 +282,11 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			}
 
 			if (CheckLink(instance, field))
+			{
+				continue;
+			}
+
+			if (CheckUnityBaseType(instance, field))
 			{
 				continue;
 			}
@@ -452,6 +459,54 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		return true;
 	}
 
+	private static bool CheckUnityBaseType(object instance,
+		FieldInfo field)
+	{
+		var obj = field.GetValue(instance);
+
+		switch (obj)
+		{
+			case Color color:
+			{
+				var value = EditorGUILayout.ColorField(field.Name, color);
+				field.SetValue(instance, value);
+
+				return true;
+			}
+			case Vector2 vector2:
+			{
+				var value = EditorGUILayout.Vector2Field(field.Name, vector2);
+				field.SetValue(instance, value);
+
+				return true;
+			}
+			case Vector3 vector3:
+			{
+				var value = EditorGUILayout.Vector3Field(field.Name, vector3);
+				field.SetValue(instance, value);
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+	
+	private static object ChangeUnityBaseValue(string name,
+		object value)
+	{
+		return value switch
+		{
+			string sValue => EditorGUILayout.TextField(name, sValue),
+			bool sValue => EditorGUILayout.Toggle(name, sValue),
+			int sValue => EditorGUILayout.IntField(name, sValue),
+			long sValue => EditorGUILayout.LongField(name, sValue),
+			float sValue => EditorGUILayout.FloatField(name, sValue),
+			double sValue => EditorGUILayout.DoubleField(name, sValue),
+			_ => throw new InvalidOperationException()
+		};
+	}
+
 	private static bool CheckBaseType(object instance,
 		FieldInfo field)
 	{
@@ -478,7 +533,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			long sValue => EditorGUILayout.LongField(name, sValue),
 			float sValue => EditorGUILayout.FloatField(name, sValue),
 			double sValue => EditorGUILayout.DoubleField(name, sValue),
-			_ => false
+			_ => throw new InvalidOperationException()
 		};
 	}
 

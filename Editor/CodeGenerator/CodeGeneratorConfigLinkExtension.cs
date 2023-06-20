@@ -21,13 +21,13 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\n\t{{\n\t\tif (linkDefinition.Value != null)" +
 		"\n\t\t{{\n\t\t\treturn linkDefinition.Value;\n\t\t}}" +
 		"\n\n\t\tvar all = linkDefinition.GetAll();" +
-		"\n\t\tlinkDefinition.Value = all.FirstOrDefault(item => item.Id == linkDefinition.Id);" +
+		"\n\t\tlinkDefinition.Value = all.FirstOrDefault(item => item.{1} == linkDefinition.Id);" +
 		"\n\n\t\treturn linkDefinition.Value;\n\t}}\n";
 
 	private const string GetAllTemplate =
 		"\n\tprivate static IEnumerable<{0}> GetAll(this LinkDefinition<{0}> linkDefinition)" +
 		"\n\t{{\n\t\tvar resultList = new List<{0}>();" +
-		"{2}\n" +
+		"{1}\n" +
 		"\n\t\treturn resultList;\n\t}}\n";
 	
 	private const string ContentGetAllTemplate =
@@ -40,15 +40,15 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 
 	private const string GetIdsSwitch =
 		"\t\tswitch (linkDefinition)" +
-		"\n\t\t{{\n\t\t{0}\n\t\t}}\n\n";
+		"\n\t\t{{{0}\n\t\t}}\n\n";
 
 	private const string GetIdsReturn =
 		"\t\treturn new List<string>();\n\t}\n";
 
 	private const string ContentGetIdsTemplate =
-		"\tcase LinkDefinition<{0}> link:" +
+		"\n\t\t\tcase LinkDefinition<{0}> link:" +
 		"\n\t\t\t{{\n\t\t\t\tvar all = link.GetAll();" +
-		"\n\t\t\t\treturn all.Select(l => l.Id);\n\t\t\t}}";
+		"\n\t\t\t\treturn all.Select(l => l.{1});\n\t\t\t}}";
 
 	private readonly TypeInfo _typeInfo;
 
@@ -133,7 +133,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 
 	private static bool CheckPrimaryKeyAttribute(IEnumerable<FieldInfo> fields)
 	{
-		var result= fields
+		var result = fields
 			.Select(field => field.GetCustomAttribute<PrimaryKeyAttribute>())
 			.Any(primaryKeyAttribute => primaryKeyAttribute != null);
 
@@ -201,14 +201,14 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 	private string GenerateUnwrap()
 	{
 		var code = string.Empty;
-		
+
 		foreach (var (type, namesList) in _fields)
 		{
 			var typeString = type.ToString().Replace('+', '.');
-			var rootType = GetRootType(_typeInfo);
-			code += string.Format(UnwrapTemplate, typeString, rootType);
+			var name = GetNamePrimaryKey(type);
+			code += string.Format(UnwrapTemplate, typeString, name);
 			var contentGetAll = GetContentGetAll(namesList);
-			code += string.Format(GetAllTemplate, typeString, rootType, contentGetAll);
+			code += string.Format(GetAllTemplate, typeString, contentGetAll);
 		}
 
 		return code;
@@ -217,9 +217,8 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 	private string GenerateGetIds()
 	{
 		var code = string.Empty;
-		var rootType = GetRootType(_typeInfo);
 		var content = GetContentGetIds();
-		code += string.Format(GetIdsTemplate, rootType);
+		code += string.Format(GetIdsTemplate);
 
 		if (!string.IsNullOrWhiteSpace(content))
 		{
@@ -234,14 +233,36 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 	private string GetContentGetIds()
 	{
 		var code = string.Empty;
-		
+
 		foreach (var (type, _) in _fields)
 		{
 			var typeString = type.ToString().Replace('+', '.');
-			code += string.Format(ContentGetIdsTemplate, typeString);
+			var name = GetNamePrimaryKey(type);
+			code += string.Format(ContentGetIdsTemplate, typeString, name);
 		}
 
 		return code;
+	}
+
+	private static string GetNamePrimaryKey(Type type)
+	{
+		var fields = type.GetFields();
+
+		foreach (var fieldInfo in fields)
+		{
+			var attribute = fieldInfo.GetCustomAttribute<PrimaryKeyAttribute>();
+
+			if (attribute == null)
+			{
+				continue;
+			}
+
+			var postName = fieldInfo.FieldType != typeof(string) ? ".ToString()" : string.Empty;
+
+			return $"{fieldInfo.Name}{postName}";
+		}
+
+		throw new InvalidOperationException();
 	}
 
 	private static string GetContentGetAll(List<string> namesList)
