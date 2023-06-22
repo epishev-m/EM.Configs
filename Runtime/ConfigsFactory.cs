@@ -5,16 +5,18 @@ using Foundation;
 using MessagePack;
 using UnityEngine;
 
-public abstract class BaseConfigsFactory<T> : IFactory
+public class ConfigsFactory<T> : IFactory
 	where T : class
 {
 	private readonly IAssetsManager _assetsManager;
+
+	private readonly string _key;
 
 	#region IFactory
 
 	public Result<object> Create()
 	{
-		var loadAssetResult = _assetsManager.LoadAsset<TextAsset>(Key);
+		var loadAssetResult = _assetsManager.LoadAsset<TextAsset>(_key);
 
 		if (loadAssetResult.Failure)
 		{
@@ -43,18 +45,15 @@ public abstract class BaseConfigsFactory<T> : IFactory
 
 	#endregion
 
-	#region BaseConfigsFactory
+	#region ConfigsFactory
 
-	protected BaseConfigsFactory(IAssetsManager assetsManager)
+	public ConfigsFactory(IAssetsManager assetsManager,
+		string key)
 	{
 		Requires.NotNullParam(assetsManager, nameof(assetsManager));
 
 		_assetsManager = assetsManager;
-	}
-
-	protected abstract string Key
-	{
-		get;
+		_key = key;
 	}
 
 	#endregion

@@ -14,7 +14,7 @@ public sealed class BaseConfigsFactoryTest
 		// Act
 		try
 		{
-			var unused = new TestConfigsFactory(null);
+			var unused = new ConfigsFactory<TestConfig>(null, string.Empty);
 		}
 		catch (ArgumentNullException)
 		{
@@ -27,24 +27,6 @@ public sealed class BaseConfigsFactoryTest
 
 	#region Nested
 
-	private sealed class TestConfigsFactory : BaseConfigsFactory<TestConfig>
-	{
-		#region BaseConfigsFactory
-
-		protected override string Key => "test";
-
-		#endregion
-
-		#region TestConfigsFactory
-
-		public TestConfigsFactory(IAssetsManager assetsManager)
-			: base(assetsManager)
-		{
-		}
-
-		#endregion
-	}
-	
 	private sealed class TestConfig
 	{
 	}

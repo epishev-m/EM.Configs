@@ -1,14 +1,15 @@
 ﻿namespace EM.Configs
 {
 
+using System;
 using MessagePack;
 using MessagePack.Formatters;
 
-public sealed class LinkDefinitionFormatter<T> : IMessagePackFormatter<LinkDefinition<T>>
-	where T : class
+public sealed class LinkDefinitionFormatter<TLink> : IMessagePackFormatter<TLink>
+	where TLink : LinkDefinition
 {
 	public void Serialize(ref MessagePackWriter writer,
-		LinkDefinition<T> value,
+		TLink value,
 		MessagePackSerializerOptions options)
 	{
 		if (value == null)
@@ -21,7 +22,7 @@ public sealed class LinkDefinitionFormatter<T> : IMessagePackFormatter<LinkDefin
 		}
 	}
 
-	public LinkDefinition<T> Deserialize(ref MessagePackReader reader,
+	public TLink Deserialize(ref MessagePackReader reader,
 		MessagePackSerializerOptions options)
 	{
 		if (reader.TryReadNil())
@@ -33,10 +34,8 @@ public sealed class LinkDefinitionFormatter<T> : IMessagePackFormatter<LinkDefin
 		var stringFormatter = resolver.GetFormatterWithVerify<string>();
 		var id =  stringFormatter.Deserialize(ref reader, options);
 
-		var link = new LinkDefinition<T>
-		{
-			Id = id
-		};
+		var link = Activator.CreateInstance<TLink>();
+		link.Id = id;
 
 		return link;
 	}

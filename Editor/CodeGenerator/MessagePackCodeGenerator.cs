@@ -34,7 +34,7 @@ public sealed class MessagePackCodeGenerator
 			RedirectStandardError = true,
 			UseShellExecute = false,
 			FileName = "mpc",
-			Arguments = $"-i {_inputPath} -o {_outputPath + outputFile} -n EM.Configs",
+			Arguments = $"-i {_inputPath} -o {_outputPath + outputFile}", // -n EM.Configs
 			WorkingDirectory = Application.dataPath
 		};
 

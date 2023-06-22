@@ -24,7 +24,7 @@ public abstract class LinkDefinition
 }
 
 [Serializable]
-public sealed class LinkDefinition<T> : LinkDefinition
+public class LinkDefinition<T> : LinkDefinition
 	where T : class
 {
 	[NonSerialized] public T Value;
