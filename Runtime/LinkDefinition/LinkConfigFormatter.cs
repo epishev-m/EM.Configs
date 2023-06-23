@@ -5,8 +5,8 @@ using System;
 using MessagePack;
 using MessagePack.Formatters;
 
-public sealed class LinkDefinitionFormatter<TLink> : IMessagePackFormatter<TLink>
-	where TLink : LinkDefinition
+public sealed class LinkConfigFormatter<TLink> : IMessagePackFormatter<TLink>
+	where TLink : LinkConfig
 {
 	public void Serialize(ref MessagePackWriter writer,
 		TLink value,

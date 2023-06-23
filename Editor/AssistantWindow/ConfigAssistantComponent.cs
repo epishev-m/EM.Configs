@@ -14,24 +14,24 @@ using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
-public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
+public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	where T : class, new()
 {
 	private EditorWindow _window;
 
-	private readonly IDefinitionAssistantHelper _externalHelper;
+	private readonly IConfigAssistantHelper _externalHelper;
 
 	private readonly T _config;
 
 	private readonly List<FieldInfo> _fields = new();
 
-	private readonly Dictionary<string, DefinitionAssistantCollection> _collections = new();
+	private readonly Dictionary<string, ConfigAssistantCollection> _collections = new();
 
-	private readonly Dictionary<string, DefinitionAssistantObject> _objects = new();
+	private readonly Dictionary<string, ConfigAssistantObject> _objects = new();
 
-	private readonly Dictionary<string, DefinitionAssistantLink> _links = new();
+	private readonly Dictionary<string, ConfigAssistantLink> _links = new();
 	
-	private readonly Dictionary<string, DefinitionAssistantSpriteAtlas> _spriteAtlases = new();
+	private readonly Dictionary<string, ConfigAssistantSpriteAtlas> _spriteAtlases = new();
 
 	private bool _info;
 
@@ -61,9 +61,9 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 
 	#endregion
 
-	#region DefinitionsAssistantComponent
+	#region ConfigAssistantComponent
 
-	protected DefinitionAssistantComponent(IDefinitionAssistantHelper externalHelper,
+	protected ConfigAssistantComponent(IConfigAssistantHelper externalHelper,
 		string name,
 		T config,
 		params string[] fieldNames)
@@ -197,7 +197,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		{
 			Converters =
 			{
-				new LinkDefinitionJsonConverter(),
+				new ConfigLinkJsonConverter(),
 				new ColorJsonConverter()
 			},
 			Formatting = Formatting.Indented
@@ -237,7 +237,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			ObjectCreationHandling = ObjectCreationHandling.Replace,
 			Converters =
 			{
-				new LinkDefinitionJsonConverter(),
+				new ConfigLinkJsonConverter(),
 				new ColorJsonConverter(),
 				new UnionConverter()
 			}
@@ -353,13 +353,13 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		FieldInfo field)
 	{
 		var fieldType = field.FieldType;
-		var fieldValue = field.GetValue(instance);
 
-		if (fieldType != typeof(SpriteAtlasDefinition))
+		if (!typeof(ISpriteAtlas).IsAssignableFrom(fieldType))
 		{
 			return false;
 		}
-		
+
+		var fieldValue = field.GetValue(instance);
 		fieldValue ??= Activator.CreateInstance(fieldType);
 		var spriteAtlas = GetSpriteAtlas(field, fieldValue);
 		var useGroup = instance == _config;
@@ -411,7 +411,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		var fieldType = field.FieldType;
 		var fieldValue = field.GetValue(instance);
 
-		if (!fieldType.IsSubclassOf(typeof(LinkDefinition)))
+		if (!fieldType.IsSubclassOf(typeof(LinkConfig)))
 		{
 			return false;
 		}
@@ -537,7 +537,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 		};
 	}
 
-	private DefinitionAssistantCollection GetCollection(FieldInfo field,
+	private ConfigAssistantCollection GetCollection(FieldInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -549,13 +549,13 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			return collection;
 		}
 
-		collection = new DefinitionAssistantCollection(_window, ChangeValue, OnGuiFields);
+		collection = new ConfigAssistantCollection(_window, ChangeValue, OnGuiFields);
 		_collections.Add(key, collection);
 
 		return collection;
 	}
 
-	private DefinitionAssistantObject GetObject(object instance,
+	private ConfigAssistantObject GetObject(object instance,
 		FieldInfo field)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -567,13 +567,13 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			return resultObject;
 		}
 
-		resultObject = new DefinitionAssistantObject(_window, OnGuiFields);
+		resultObject = new ConfigAssistantObject(_window, OnGuiFields);
 		_objects.Add(key, resultObject);
 
 		return resultObject;
 	}
 
-	private DefinitionAssistantLink GetLink(FieldInfo field,
+	private ConfigAssistantLink GetLink(FieldInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -585,13 +585,13 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			return resultLink;
 		}
 
-		resultLink = new DefinitionAssistantLink(_externalHelper);
+		resultLink = new ConfigAssistantLink(_externalHelper);
 		_links.Add(key, resultLink);
 
 		return resultLink;
 	}
 
-	private DefinitionAssistantSpriteAtlas GetSpriteAtlas(FieldInfo field,
+	private ConfigAssistantSpriteAtlas GetSpriteAtlas(FieldInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -603,7 +603,7 @@ public abstract class DefinitionAssistantComponent<T> : IAssistantComponent
 			return resultSpriteAtlas;
 		}
 		
-		resultSpriteAtlas = new DefinitionAssistantSpriteAtlas(_window);
+		resultSpriteAtlas = new ConfigAssistantSpriteAtlas(_window);
 		_spriteAtlases.Add(key, resultSpriteAtlas);
 
 		return resultSpriteAtlas;

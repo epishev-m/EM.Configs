@@ -21,12 +21,12 @@ public sealed class DefinitionCodeGenerator
 
 	public void Execute()
 	{
-		new CodeGeneratorSimple(nameof(LinkDefinition) + "ExtensionGenerated.cs", _path,
+		new CodeGeneratorSimple(nameof(LinkConfig) + "Extension_Generated.cs", _path,
 				new CodeGeneratorSimpleComment("This code is generated automatically, do not change it!",
 					new CodeGeneratorSimpleComment("ReSharper disable All",
 						new CodeGeneratorSimpleNamespace(_typeInfo.Namespace,
 							new CodeGeneratorSimpleUsing(new[] {"System.Collections.Generic", "System.Linq", "EM.Configs"},
-								new CodeGeneratorSimpleClass(nameof(LinkDefinition) + "Extension", "static",
+								new CodeGeneratorSimpleClass(nameof(LinkConfig) + "Extension", "static",
 									new CodeGeneratorConfigLinkExtension(_typeInfo)))))))
 			.Create();
 	}

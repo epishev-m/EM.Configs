@@ -11,7 +11,7 @@ using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
-public sealed class DefinitionAssistantCollection
+public sealed class ConfigAssistantCollection
 {
 	private readonly EditorWindow _window;
 
@@ -39,7 +39,7 @@ public sealed class DefinitionAssistantCollection
 
 	#region DefinitionsCollection
 
-	public DefinitionAssistantCollection(EditorWindow window,
+	public ConfigAssistantCollection(EditorWindow window,
 		Func<string, object, object> changeValue,
 		Action<object> guiFields)
 	{
@@ -127,7 +127,7 @@ public sealed class DefinitionAssistantCollection
 	{
 		var elementType = _supportedTypes[_addTypeIndex];
 
-		if (!elementType.IsSubclassOf(typeof(LinkDefinition)))
+		if (!elementType.IsSubclassOf(typeof(LinkConfig)))
 		{
 			return true;
 		}

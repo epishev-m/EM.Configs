@@ -11,13 +11,13 @@ using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.U2D;
 
-public sealed class DefinitionAssistantSpriteAtlas
+public sealed class ConfigAssistantSpriteAtlas
 {
 	private readonly AnimBool _showExtraFields = new(false);
 
 	#region DefinitionAssistantSpriteAtlas
 	
-	public DefinitionAssistantSpriteAtlas(EditorWindow window)
+	public ConfigAssistantSpriteAtlas(EditorWindow window)
 	{
 		_showExtraFields.valueChanged.AddListener(window.Repaint);
 	}
@@ -26,7 +26,7 @@ public sealed class DefinitionAssistantSpriteAtlas
 		object fieldValue,
 		bool useGroup)
 	{
-		if (fieldValue is not SpriteAtlasDefinition value)
+		if (fieldValue is not ISpriteAtlas value)
 		{
 			return;
 		}
@@ -46,7 +46,7 @@ public sealed class DefinitionAssistantSpriteAtlas
 		}
 	}
 
-	private static bool TryGetSpriteAtlas(SpriteAtlasDefinition fieldValue,
+	private static bool TryGetSpriteAtlas(ISpriteAtlas fieldValue,
 		out SpriteAtlas spriteAtlas)
 	{
 		spriteAtlas = default;
@@ -81,7 +81,7 @@ public sealed class DefinitionAssistantSpriteAtlas
 		return options.Any();
 	}
 
-	private static void OnGuiSpriteAtlas(SpriteAtlasDefinition fieldValue)
+	private static void OnGuiSpriteAtlas(ISpriteAtlas fieldValue)
 	{
 		using (new EditorVerticalGroup(17))
 		{
@@ -96,7 +96,7 @@ public sealed class DefinitionAssistantSpriteAtlas
 	}
 
 	private static void OnGuiSprite(IEnumerable<string> options,
-		SpriteAtlasDefinition fieldValue)
+		ISpriteAtlas fieldValue)
 	{
 		var optionsList = options.ToList();
 		var index = optionsList.IndexOf(fieldValue.Sprite);

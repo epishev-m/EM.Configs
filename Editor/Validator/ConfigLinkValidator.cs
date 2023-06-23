@@ -11,7 +11,7 @@ using Foundation;
 
 public sealed class ConfigLinkValidator : IConfigsValidator
 {
-	private readonly Dictionary<Type, List<LinkDefinition>> _dictionaryLinks = new();
+	private readonly Dictionary<Type, List<LinkConfig>> _dictionaryLinks = new();
 
 	private readonly Dictionary<Type, List<object>> _dictionaryObjects = new();
 
@@ -117,16 +117,16 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 	private bool TryAddConfigLink(object fieldValue,
 		Type fieldType)
 	{
-		if (!typeof(LinkDefinition).IsAssignableFrom(fieldType))
+		if (!typeof(LinkConfig).IsAssignableFrom(fieldType))
 		{
 			return false;
 		}
 
-		var configLink = (LinkDefinition) fieldValue;
+		var configLink = (LinkConfig) fieldValue;
 
 		if (!_dictionaryLinks.ContainsKey(configLink.Type))
 		{
-			_dictionaryLinks.Add(configLink.Type, new List<LinkDefinition>());
+			_dictionaryLinks.Add(configLink.Type, new List<LinkConfig>());
 		}
 
 		_dictionaryLinks[configLink.Type].Add(configLink);
@@ -222,21 +222,21 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 		}
 	}
 
-	private object GetObjectById(LinkDefinition linkDefinition,
+	private object GetObjectById(LinkConfig linkConfig,
 		FieldInfo fieldInfo)
 	{
-		var obj = _dictionaryObjects[linkDefinition.Type].FirstOrDefault(obj =>
+		var obj = _dictionaryObjects[linkConfig.Type].FirstOrDefault(obj =>
 		{
 			var id = (string) fieldInfo.GetValue(obj);
 
-			return linkDefinition.Id == id;
+			return linkConfig.Id == id;
 		});
 
 		return obj;
 	}
 
 	private bool CheckKeyAndFillErrors(Type type,
-		IEnumerable<LinkDefinition> configLinkList)
+		IEnumerable<LinkConfig> configLinkList)
 	{
 		if (_dictionaryObjects.ContainsKey(type))
 		{
@@ -252,7 +252,7 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 	}
 
 	private void FillErrors(Type type,
-		IEnumerable<LinkDefinition> configLinkList)
+		IEnumerable<LinkConfig> configLinkList)
 	{
 		var fieldInfo = type.GetField("Id");
 
@@ -267,14 +267,14 @@ public sealed class ConfigLinkValidator : IConfigsValidator
 		}
 	}
 
-	private void AddLogError(LinkDefinition linkDefinition)
+	private void AddLogError(LinkConfig linkConfig)
 	{
 		if (string.IsNullOrWhiteSpace(_errorMessage.ToString()))
 		{
 			_errorMessage.AppendLine($"{nameof(ConfigLinkValidator)} :: Not found objects:");
 		}
 
-		_errorMessage.AppendLine($" - Type: \"{linkDefinition.Type.Name}\", Id: \"{linkDefinition.Id}\"");
+		_errorMessage.AppendLine($" - Type: \"{linkConfig.Type.Name}\", Id: \"{linkConfig.Id}\"");
 	}
 
 	#endregion

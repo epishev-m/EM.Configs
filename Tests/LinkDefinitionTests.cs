@@ -13,7 +13,7 @@ internal sealed class LinkDefinitionTests
 		// Act
 		try
 		{
-			var unused = new LinkDefinitionTest(null);
+			var unused = new LinkConfigTest(null);
 		}
 		catch (ArgumentNullException)
 		{
@@ -30,7 +30,7 @@ internal sealed class LinkDefinitionTests
 		const string expectedName = "test";
 
 		// Act
-		var linkDefinition = new LinkDefinition<Test>
+		var linkDefinition = new LinkConfigTest<Test>
 		{
 			Id = expectedName
 		};
@@ -43,13 +43,21 @@ internal sealed class LinkDefinitionTests
 	}
 
 	#region Nested
-
-	private sealed class LinkDefinitionTest : LinkDefinition
+	
+	private sealed class LinkConfigTest<T> : LinkConfig<T>
+		where T : class
 	{
-		public LinkDefinitionTest(Type entryType)
+		public override string Id { get; set; }
+	}
+
+	private sealed class LinkConfigTest : LinkConfig
+	{
+		public LinkConfigTest(Type entryType)
 			: base(entryType)
 		{
 		}
+
+		public override string Id { get; set; }
 	}
 	
 	private sealed class Test

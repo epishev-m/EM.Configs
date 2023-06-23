@@ -1,13 +1,15 @@
 namespace EM.Configs
 {
 
+using System;
 using MessagePack;
 using MessagePack.Formatters;
 
-public class SpriteAtlasDefinitionFormatter : IMessagePackFormatter<SpriteAtlasDefinition>
+public class SpriteAtlasDefinitionFormatter<TSpriteAtlas> : IMessagePackFormatter<TSpriteAtlas>
+	where TSpriteAtlas : ISpriteAtlas
 {
 	public void Serialize(ref MessagePackWriter writer,
-		SpriteAtlasDefinition value,
+		TSpriteAtlas value,
 		MessagePackSerializerOptions options)
 	{
 		if (value == null)
@@ -23,7 +25,7 @@ public class SpriteAtlasDefinitionFormatter : IMessagePackFormatter<SpriteAtlasD
 		}
 	}
 
-	public SpriteAtlasDefinition Deserialize(ref MessagePackReader reader,
+	public TSpriteAtlas Deserialize(ref MessagePackReader reader,
 		MessagePackSerializerOptions options)
 	{
 		if (reader.TryReadNil())
@@ -45,13 +47,12 @@ public class SpriteAtlasDefinitionFormatter : IMessagePackFormatter<SpriteAtlasD
 		{
 			var atlas = resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 			var sprite = resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-			var result = new SpriteAtlasDefinition()
-			{
-				Atlas = atlas,
-				Sprite = sprite
-			};
 
-			return result;
+			var spriteAtlas = Activator.CreateInstance<TSpriteAtlas>();
+			spriteAtlas.Atlas = atlas;
+			spriteAtlas.Sprite = sprite;
+
+			return spriteAtlas;
 		}
 		finally
 		{

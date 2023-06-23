@@ -13,7 +13,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEngine;
 
-public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssistantComponent<DefinitionSettings>
+public sealed class ConfigGeneralAssistantComponent<T> : ProjectSettingsAssistantComponent<ConfigAssistantSettings>
 	where T : class, new()
 {
 	private readonly IEnumerable<IConfigsValidator> _validators;
@@ -40,8 +40,18 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 		{
 			OnGuiInputPath();
 			OnGuiOutputPath();
-			OnGuiCodeGenerationInputPath();
-			OnGuiCodeGenerationOutputPath();
+
+			using (new EditorVerticalGroup(17, "GroupBox"))
+			{
+				OnGuiMessagePackInputPath();
+				OnGuiMessagePackOutputPath();
+			}
+
+			using (new EditorVerticalGroup(17, "GroupBox"))
+			{
+				OnGuiLinkConfigOutputPath();
+			}
+
 			OnGuiButtons();
 		}
 	}
@@ -50,7 +60,7 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 
 	#region AssistantWindowComponentConfigs
 
-	public DefinitionGeneralAssistantComponent(IEnumerable<IConfigsValidator> validators)
+	public ConfigGeneralAssistantComponent(IEnumerable<IConfigsValidator> validators)
 	{
 		_validators = validators;
 	}
@@ -105,14 +115,14 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 		}
 	}
 
-	private void OnGuiCodeGenerationInputPath()
+	private void OnGuiMessagePackInputPath()
 	{
-		EditorGUILayout.LabelField("[Code Generate] Input path:");
+		EditorGUILayout.LabelField("[MessagePack] Input path:");
 
 		using (new EditorHorizontalGroup())
 		{
 			GUI.enabled = false;
-			EditorGUILayout.TextField(Settings.CodeGenerationInputPath);
+			EditorGUILayout.TextField(Settings.MessagePackInputPath);
 			GUI.enabled = true;
 
 			if (GUILayout.Button("...", GUILayout.Width(30)))
@@ -124,20 +134,20 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 					return;
 				}
 				
-				Settings.CodeGenerationInputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+				Settings.MessagePackInputPath = Path.GetRelativePath(Application.dataPath, fullPath);
 				Save();
 			}
 		}
 	}
 
-	private void OnGuiCodeGenerationOutputPath()
+	private void OnGuiMessagePackOutputPath()
 	{
-		EditorGUILayout.LabelField("[Code Generate] Output path:");
+		EditorGUILayout.LabelField("[MessagePack] Output path:");
 
 		using (new EditorHorizontalGroup())
 		{
 			GUI.enabled = false;
-			EditorGUILayout.TextField(Settings.CodeGenerationOutputPath);
+			EditorGUILayout.TextField(Settings.MessagePackOutputPath);
 			GUI.enabled = true;
 
 			if (GUILayout.Button("...", GUILayout.Width(30)))
@@ -149,7 +159,32 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 					return;
 				}
 
-				Settings.CodeGenerationOutputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+				Settings.MessagePackOutputPath = Path.GetRelativePath(Application.dataPath, fullPath);
+				Save();
+			}
+		}
+	}
+
+	private void OnGuiLinkConfigOutputPath()
+	{
+		EditorGUILayout.LabelField("[LinkConfig] Output path:");
+
+		using (new EditorHorizontalGroup())
+		{
+			GUI.enabled = false;
+			EditorGUILayout.TextField(Settings.LinkConfigOutputPath);
+			GUI.enabled = true;
+
+			if (GUILayout.Button("...", GUILayout.Width(30)))
+			{
+				var fullPath = EditorUtility.OpenFolderPanel("[LinkConfig] Output Path", "Assets", string.Empty);
+
+				if (string.IsNullOrWhiteSpace(fullPath))
+				{
+					return;
+				}
+
+				Settings.LinkConfigOutputPath = Path.GetRelativePath(Application.dataPath, fullPath);
 				Save();
 			}
 		}
@@ -192,7 +227,7 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 		{
 			Converters =
 			{
-				new LinkDefinitionJsonConverter(),
+				new ConfigLinkJsonConverter(),
 				new ColorJsonConverter(),
 				new UnionConverter()
 			}
@@ -254,10 +289,10 @@ public sealed class DefinitionGeneralAssistantComponent<T> : ProjectSettingsAssi
 	{
 		_invokingCodeGen = true;
 
-		new DefinitionCodeGenerator(typeof(T).GetTypeInfo(), Settings.FullCodeGenerationOutputPath)
+		new DefinitionCodeGenerator(typeof(T).GetTypeInfo(), Settings.LinkConfigFullOutputPath)
 			.Execute();
 
-		new MessagePackCodeGenerator(Settings.CodeGenerationInputPath, Settings.CodeGenerationOutputPath)
+		new MessagePackCodeGenerator(Settings.MessagePackInputPath, Settings.MessagePackOutputPath)
 			.Execute(() =>
 			{
 				_invokingCodeGen = false;

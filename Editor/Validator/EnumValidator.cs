@@ -98,7 +98,7 @@ public sealed class EnumValidator : IConfigsValidator
 			return true;
 		}
 
-		if (fieldValue is LinkDefinition)
+		if (fieldValue is LinkConfig)
 		{
 			return true;
 		}

@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
-public sealed class DefinitionAssistantObject
+public sealed class ConfigAssistantObject
 {
 	private readonly Action<object> _guiFields;
 
@@ -22,7 +22,7 @@ public sealed class DefinitionAssistantObject
 
 	#region DefinitionsObject
 
-	public DefinitionAssistantObject(EditorWindow window,
+	public ConfigAssistantObject(EditorWindow window,
 		Action<object> guiFields)
 	{
 		_guiFields = guiFields;

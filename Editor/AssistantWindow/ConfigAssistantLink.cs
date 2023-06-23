@@ -6,13 +6,13 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-public sealed class DefinitionAssistantLink
+public sealed class ConfigAssistantLink
 {
-	private readonly IDefinitionAssistantHelper _externalHelper;
+	private readonly IConfigAssistantHelper _externalHelper;
 
 	#region DefinitionsAssistantLink
 
-	public DefinitionAssistantLink(IDefinitionAssistantHelper externalHelper)
+	public ConfigAssistantLink(IConfigAssistantHelper externalHelper)
 	{
 		_externalHelper = externalHelper;
 	}
@@ -20,7 +20,7 @@ public sealed class DefinitionAssistantLink
 	public void DoLayoutLink(FieldInfo field,
 		object fieldValue)
 	{
-		if (fieldValue is not LinkDefinition link)
+		if (fieldValue is not LinkConfig link)
 		{
 			return;
 		}
@@ -37,7 +37,7 @@ public sealed class DefinitionAssistantLink
 		link.Id = options[index];
 	}
 
-	private List<string> GetOptions(LinkDefinition link)
+	private List<string> GetOptions(LinkConfig link)
 	{
 		var options = _externalHelper.GetIds(link).ToList();
 

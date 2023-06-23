@@ -11,13 +11,13 @@ using Assistant.Editor;
 public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 {
 	private const string DefinitionTemplate = "\n\tpublic static {0} Definition;" + 
-		"\n\n\tpublic static void SetConfig({0} _definition)" +
+		"\n\n\tpublic static void SetConfig({0} definition)" +
 		"\n\t{{\n\t\tif (Definition != null)" +
 		"\n\t\t{{\n\t\t\treturn;\n\t\t}}" +
-		"\n\n\t\tDefinition = _definition;\n\t}}\n";
+		"\n\n\t\tDefinition = definition;\n\t}}\n";
 
 	private const string UnwrapTemplate =
-		"\n\tpublic static {0} Unwrap(this LinkDefinition<{0}> linkDefinition)" +
+		"\n\tpublic static {0} Unwrap(this LinkConfig<{0}> linkDefinition)" +
 		"\n\t{{\n\t\tif (linkDefinition.Value != null)" +
 		"\n\t\t{{\n\t\t\treturn linkDefinition.Value;\n\t\t}}" +
 		"\n\n\t\tvar all = linkDefinition.GetAll();" +
@@ -25,7 +25,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\n\n\t\treturn linkDefinition.Value;\n\t}}\n";
 
 	private const string GetAllTemplate =
-		"\n\tprivate static IEnumerable<{0}> GetAll(this LinkDefinition<{0}> linkDefinition)" +
+		"\n\tprivate static IEnumerable<{0}> GetAll(this LinkConfig<{0}> linkDefinition)" +
 		"\n\t{{\n\t\tvar resultList = new List<{0}>();" +
 		"{1}\n" +
 		"\n\t\treturn resultList;\n\t}}\n";
@@ -35,7 +35,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\n\t\t{{\n\t\t\tresultList.AddRange(Definition{0});\n\t\t}}";
 
 	private const string GetIdsTemplate =
-		"\n\tpublic static IEnumerable<string> GetIds(this LinkDefinition linkDefinition)" +
+		"\n\tpublic static IEnumerable<string> GetIds(this LinkConfig linkDefinition)" +
 		"\n\t{{\n";
 
 	private const string GetIdsSwitch =
@@ -46,7 +46,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		"\t\treturn new List<string>();\n\t}\n";
 
 	private const string ContentGetIdsTemplate =
-		"\n\t\t\tcase LinkDefinition<{0}> link:" +
+		"\n\t\t\tcase LinkConfig<{0}> link:" +
 		"\n\t\t\t{{\n\t\t\t\tvar all = link.GetAll();" +
 		"\n\t\t\t\treturn all.Select(l => l.{1});\n\t\t\t}}";
 
@@ -172,7 +172,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 			return true;
 		}
 
-		if (typeof(LinkDefinition).IsAssignableFrom(fieldInfo.FieldType))
+		if (typeof(LinkConfig).IsAssignableFrom(fieldInfo.FieldType))
 		{
 			return true;
 		}

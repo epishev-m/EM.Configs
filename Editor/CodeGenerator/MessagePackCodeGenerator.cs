@@ -23,7 +23,7 @@ public sealed class MessagePackCodeGenerator
 
 	public void Execute(Action collback)
 	{
-		var outputFile = "\\MessagePackGenerate.cs";
+		var outputFile = "\\MessagePack_Generated.cs";
 		var psi = new ProcessStartInfo
 		{
 			CreateNoWindow = true,

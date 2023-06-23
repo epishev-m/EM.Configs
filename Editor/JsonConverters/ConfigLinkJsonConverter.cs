@@ -4,18 +4,18 @@
 using System;
 using Newtonsoft.Json;
 
-public class LinkDefinitionJsonConverter : JsonConverter
+public class ConfigLinkJsonConverter : JsonConverter
 {
 	public override bool CanConvert(Type objectType)
 	{
-		return typeof(LinkDefinition).IsAssignableFrom(objectType);
+		return typeof(LinkConfig).IsAssignableFrom(objectType);
 	}
 
 	public override void WriteJson(JsonWriter writer,
 		object value,
 		JsonSerializer serializer)
 	{
-		writer.WriteValue(((LinkDefinition) value).Id);
+		writer.WriteValue(((LinkConfig) value).Id);
 	}
 
 	public override object ReadJson(JsonReader reader,
@@ -29,7 +29,7 @@ public class LinkDefinitionJsonConverter : JsonConverter
 		}
 
 		var key = (string) reader.Value;
-		var resultObj = (LinkDefinition) Activator.CreateInstance(objectType);
+		var resultObj = (LinkConfig) Activator.CreateInstance(objectType);
 		resultObj.Id = key;
 
 		return resultObj;
