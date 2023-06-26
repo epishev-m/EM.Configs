@@ -60,6 +60,7 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 	{
 		_fields.Clear();
 		FillFields(_typeInfo, string.Empty);
+		FillProperties(_typeInfo, string.Empty);
 		var code = GenerateCode();
 
 		return code;
@@ -80,14 +81,14 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 
 		foreach (var fieldInfo in fields)
 		{
-			if (TryGetElementType(fieldInfo, out var elementType))
+			if (TryGetElementType(fieldInfo.FieldType, out var elementType))
 			{
 				AddField(elementType, $"{path}.{fieldInfo.Name}");
 
 				continue;
 			}
 
-			if (CheckExcludedClasses(fieldInfo))
+			if (CheckExcludedClasses(fieldInfo.FieldType))
 			{
 				continue;
 			}
@@ -99,12 +100,36 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 			}
 		}
 	}
+	
+	private void FillProperties(TypeInfo typeInfo, string path)
+	{
+		var properties = typeInfo.GetProperties();
 
-	private static bool TryGetElementType(FieldInfo fieldInfo,
+		foreach (var propertyInfo in properties)
+		{
+			if (TryGetElementType(propertyInfo.PropertyType, out var elementType))
+			{
+				AddField(elementType, $"{path}.{propertyInfo.Name}");
+
+				continue;
+			}
+
+			if (CheckExcludedClasses(propertyInfo.PropertyType))
+			{
+				continue;
+			}
+
+			if (propertyInfo.PropertyType.IsClass)
+			{
+				var fieldTypeInfo = propertyInfo.PropertyType.GetTypeInfo();
+				FillFields(fieldTypeInfo, $"{path}.{propertyInfo.Name}");
+			}
+		}
+	}
+
+	private static bool TryGetElementType(Type type,
 		out Type elementType)
 	{
-		var type = fieldInfo.FieldType;
-
 		if (!typeof(IList).IsAssignableFrom(type))
 		{
 			elementType = null;
@@ -126,12 +151,19 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 			return true;
 		}
 
+		var properties = elementType.GetProperties();
+		
+		if (CheckPrimaryKeyAttribute(properties))
+		{
+			return true;
+		}
+
 		elementType = null;
 			
 		return false;
 	}
 
-	private static bool CheckPrimaryKeyAttribute(IEnumerable<FieldInfo> fields)
+	private static bool CheckPrimaryKeyAttribute(IEnumerable<MemberInfo> fields)
 	{
 		var result = fields
 			.Select(field => field.GetCustomAttribute<PrimaryKeyAttribute>())
@@ -150,29 +182,29 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 		_fields[type].Add(path);
 	}
 
-	private static bool CheckExcludedClasses(FieldInfo fieldInfo)
+	private static bool CheckExcludedClasses(Type type)
 	{
-		if (fieldInfo.FieldType.IsPrimitive)
+		if (type.IsPrimitive)
 		{
 			return true;
 		}
 		
-		if (fieldInfo.FieldType == typeof(string))
+		if (type == typeof(string))
 		{
 			return true;
 		}
 
-		if (typeof(IList).IsAssignableFrom(fieldInfo.FieldType))
+		if (typeof(IList).IsAssignableFrom(type))
 		{
 			return true;
 		}
 
-		if (fieldInfo.FieldType.IsArray)
+		if (type.IsArray)
 		{
 			return true;
 		}
 
-		if (typeof(LinkConfig).IsAssignableFrom(fieldInfo.FieldType))
+		if (typeof(LinkConfig).IsAssignableFrom(type))
 		{
 			return true;
 		}
@@ -260,6 +292,22 @@ public sealed class CodeGeneratorConfigLinkExtension : ICodeGenerator
 			var postName = fieldInfo.FieldType != typeof(string) ? ".ToString()" : string.Empty;
 
 			return $"{fieldInfo.Name}{postName}";
+		}
+		
+		var properties = type.GetProperties();
+		
+		foreach (var propertyInfo in properties)
+		{
+			var attribute = propertyInfo.GetCustomAttribute<PrimaryKeyAttribute>();
+
+			if (attribute == null)
+			{
+				continue;
+			}
+
+			var postName = propertyInfo.PropertyType != typeof(string) ? ".ToString()" : string.Empty;
+
+			return $"{propertyInfo.Name}{postName}";
 		}
 
 		throw new InvalidOperationException();

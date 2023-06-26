@@ -133,7 +133,7 @@ public sealed class ConfigGeneralAssistantComponent<T> : ProjectSettingsAssistan
 				{
 					return;
 				}
-				
+
 				Settings.MessagePackInputPath = Path.GetRelativePath(Application.dataPath, fullPath);
 				Save();
 			}

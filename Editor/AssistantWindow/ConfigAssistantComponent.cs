@@ -303,13 +303,13 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 
 			if (!CheckBaseType(instance, field))
 			{
-				EditorGUILayout.HelpBox($"Type {field.FieldType} not supported!", MessageType.Warning);
+				EditorGUILayout.HelpBox($"Type {field.GetValueType()} not supported!", MessageType.Warning);
 			}
 		}
 	}
 
 	private bool CheckInstanceAndFields(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		if (instance != _config)
 		{
@@ -324,35 +324,45 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 		return false;
 	}
 
-	private static IEnumerable<FieldInfo> GetFields(object instance)
+	private static IEnumerable<MemberInfo> GetFields(object instance)
 	{
+		var resultList = new List<MemberInfo>();
+
 		if (instance == null)
 		{
-			return new List<FieldInfo>();
+			return resultList;
 		}
-		
+
 		var type = instance.GetType();
 		var baseType = type.BaseType;
 		var fields = type.GetFields();
+		var properties = type.GetProperties();
 
 		if (baseType == null || baseType == typeof(object))
 		{
+			resultList.AddRange(fields);
+			resultList.AddRange(properties);
+
 			return fields;
 		}
 
 		var baseFields = baseType.GetFields();
-		var baseTypeSet = new HashSet<string>(baseFields.Select(f => f.Name));
-		var additionalFields = fields.Where(f => !baseTypeSet.Contains(f.Name));
-		var resultList = new List<FieldInfo>(baseFields);
+		var baseFieldsSet = new HashSet<string>(baseFields.Select(f => f.Name));
+		var additionalFields = fields.Where(f => !baseFieldsSet.Contains(f.Name));
+
+		var baseProperties = baseType.GetProperties();
+
+		resultList.AddRange(baseFields);
+		resultList.AddRange(baseProperties);
 		resultList.AddRange(additionalFields);
 
 		return resultList;
 	}
 
 	private bool CheckSpriteAtlas(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
-		var fieldType = field.FieldType;
+		var fieldType = field.GetValueType();
 
 		if (!typeof(ISpriteAtlas).IsAssignableFrom(fieldType))
 		{
@@ -370,9 +380,9 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private static bool CheckString(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
-		var fieldType = field.FieldType;
+		var fieldType = field.GetValueType();
 		var fieldValue = field.GetValue(instance);
 
 		if (fieldType != typeof(string))
@@ -388,7 +398,7 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private bool CheckCollection(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		var fieldValue = field.GetValue(instance);
 
@@ -406,9 +416,9 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private bool CheckLink(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
-		var fieldType = field.FieldType;
+		var fieldType = field.GetValueType();
 		var fieldValue = field.GetValue(instance);
 
 		if (!fieldType.IsSubclassOf(typeof(LinkConfig)))
@@ -425,9 +435,9 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private bool CheckClass(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
-		var fieldType = field.FieldType;
+		var fieldType = field.GetValueType();
 
 		if (!fieldType.IsClass)
 		{
@@ -442,9 +452,9 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private static bool CheckEnum(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
-		var fieldType = field.FieldType;
+		var fieldType = field.GetValueType();
 
 		if (!fieldType.IsEnum)
 		{
@@ -460,7 +470,7 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private static bool CheckUnityBaseType(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		var obj = field.GetValue(instance);
 
@@ -508,9 +518,9 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private static bool CheckBaseType(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
-		if (!field.FieldType.IsPrimitive)
+		if (!field.GetValueType().IsPrimitive)
 		{
 			return false;
 		}
@@ -537,7 +547,7 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 		};
 	}
 
-	private ConfigAssistantCollection GetCollection(FieldInfo field,
+	private ConfigAssistantCollection GetCollection(MemberInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -556,7 +566,7 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 	}
 
 	private ConfigAssistantObject GetObject(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		var fieldHashCode = field.GetHashCode();
 		var instanceHashCode = instance.GetHashCode();
@@ -573,7 +583,7 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 		return resultObject;
 	}
 
-	private ConfigAssistantLink GetLink(FieldInfo field,
+	private ConfigAssistantLink GetLink(MemberInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();
@@ -591,7 +601,7 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 		return resultLink;
 	}
 
-	private ConfigAssistantSpriteAtlas GetSpriteAtlas(FieldInfo field,
+	private ConfigAssistantSpriteAtlas GetSpriteAtlas(MemberInfo field,
 		object instance)
 	{
 		var fieldHashCode = field.GetHashCode();

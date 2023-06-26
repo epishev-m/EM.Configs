@@ -22,7 +22,7 @@ public sealed class ConfigAssistantSpriteAtlas
 		_showExtraFields.valueChanged.AddListener(window.Repaint);
 	}
 
-	public void DoLayoutSpriteAtlas(FieldInfo field,
+	public void DoLayoutSpriteAtlas(MemberInfo field,
 		object fieldValue,
 		bool useGroup)
 	{

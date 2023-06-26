@@ -17,7 +17,7 @@ public sealed class ConfigAssistantLink
 		_externalHelper = externalHelper;
 	}
 
-	public void DoLayoutLink(FieldInfo field,
+	public void DoLayoutLink(MemberInfo field,
 		object fieldValue)
 	{
 		if (fieldValue is not LinkConfig link)

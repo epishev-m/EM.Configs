@@ -50,7 +50,7 @@ public sealed class ConfigAssistantCollection
 		_showExtraFields.valueChanged.AddListener(window.Repaint);
 	}
 
-	public void DoLayoutList(FieldInfo field,
+	public void DoLayoutList(MemberInfo field,
 		IList collection,
 		bool useGroup)
 	{
@@ -71,11 +71,11 @@ public sealed class ConfigAssistantCollection
 		}
 	}
 
-	private void OnGuiCollection(FieldInfo field,
+	private void OnGuiCollection(MemberInfo field,
 		IList collection)
 	{
 		FillExtraFieldElements(collection.Count);
-		FillSupportedTypes(field);
+		FillSupportedTypes(field.GetValueType());
 
 		if (!CheckSupportedTypes())
 		{
@@ -105,15 +105,20 @@ public sealed class ConfigAssistantCollection
 			return;
 		}
 
-		OnGuiCollectionAllItem(collection, count);
+		OnGuiCollectionAllItem(collection);
 	}
 
-	private void OnGuiCollectionAllItem(IList collection, int count)
+	private void OnGuiCollectionAllItem(IList collection)
 	{
 		for (var i = (_currentPage - 1) * _maxShow;
-		     i < Math.Clamp(_currentPage * _maxShow, 1, count);
+		     i <_currentPage * _maxShow;
 		     i++)
 		{
+			if (TryGuiCollectionPrimitiveElement(collection, i))
+			{
+				continue;
+			}
+			
 			OnGuiCollectionItem(collection, i);
 
 			if (collection.Count <= 0)
@@ -230,15 +235,17 @@ public sealed class ConfigAssistantCollection
 	private void OnGuiCollectionItem(IList collection,
 		int index)
 	{
-		if (TryGuiCollectionPrimitiveElement(collection, index))
+		var filterCollection = new List<object>();
+		
+		foreach (var obj in collection)
 		{
-			return;
+			if (CheckFilter(collection, collection.IndexOf(obj)))
+			{
+				filterCollection.Add(obj);
+			}
 		}
-
-		if (CheckFilter(collection, index))
-		{
-			OnGuiCollectionObjectItem(collection, index);
-		}
+		
+		OnGuiCollectionObjectItem(filterCollection, index);
 	}
 
 	private bool CheckFilter(IList collection,
@@ -292,6 +299,7 @@ public sealed class ConfigAssistantCollection
 		using (new EditorVerticalGroup(17, "GroupBox"))
 		{
 			OnGuiCollectionObjectElementTopPanel(collection, index);
+			FillExtraFieldElements(index + 1);
 
 			using (var fadeGroup = new EditorFadeGroup(title, _showExtraFieldElements[index]))
 			{
@@ -330,7 +338,7 @@ public sealed class ConfigAssistantCollection
 			return false;
 		}
 		
-		var fields = item.GetType().GetFields();
+		var fields = item.GetType().GetMembers();
 
 		foreach (var field in fields)
 		{
@@ -423,14 +431,13 @@ public sealed class ConfigAssistantCollection
 		EditorGUILayout.LabelField($"Count : {collection.Count}", GUILayout.MaxWidth(100));
 	}
 
-	private void FillSupportedTypes(FieldInfo field)
+	private void FillSupportedTypes(Type fieldType)
 	{
 		if (_supportedTypes != null)
 		{
 			return;
 		}
 
-		var fieldType = field.FieldType;
 		var type = fieldType.GenericTypeArguments[0];
 		var unionAttributes = type.GetCustomAttributes<MessagePack.UnionAttribute>();
 		_supportedTypes = unionAttributes.Select(unionAttribute => unionAttribute.SubType).ToList();

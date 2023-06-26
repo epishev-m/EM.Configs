@@ -30,7 +30,7 @@ public sealed class ConfigAssistantObject
 	}
 
 	public void DoLayoutObject(object instance,
-		FieldInfo field,
+		MemberInfo field,
 		bool useGroup)
 	{
 		if (!useGroup)
@@ -61,20 +61,20 @@ public sealed class ConfigAssistantObject
 	}
 
 	private void OnGuiObject(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		var fieldValue = GetValue(instance, field);
 		_guiFields.Invoke(fieldValue);
 	}
 
-	private void FillSupportedTypes(FieldInfo field)
+	private void FillSupportedTypes(MemberInfo field)
 	{
 		if (_supportedTypes != null)
 		{
 			return;
 		}
 
-		var type = field.FieldType;
+		var type = field.GetValueType();
 		var unionAttributes = type.GetCustomAttributes<MessagePack.UnionAttribute>();
 		_supportedTypes = unionAttributes.Select(unionAttribute => unionAttribute.SubType).ToList();
 
@@ -85,7 +85,7 @@ public sealed class ConfigAssistantObject
 	}
 
 	private void OnGuiTopPanel(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		FillSupportedTypes(field);
 
@@ -102,7 +102,7 @@ public sealed class ConfigAssistantObject
 	}
 
 	private void OnGuiCreatePanel(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		using (new EditorHorizontalGroup())
 		{
@@ -121,7 +121,7 @@ public sealed class ConfigAssistantObject
 	}
 
 	private static void OnGUiCurrentType(object instance,
-		FieldInfo fieldInfo)
+		MemberInfo fieldInfo)
 	{
 		var value = fieldInfo.GetValue(instance);
 
@@ -136,7 +136,7 @@ public sealed class ConfigAssistantObject
 	}
 
 	private object GetValue(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		var value = field.GetValue(instance) ?? CreateValue(instance, field);
 
@@ -144,7 +144,7 @@ public sealed class ConfigAssistantObject
 	}
 
 	private object CreateValue(object instance,
-		FieldInfo field)
+		MemberInfo field)
 	{
 		var type = _supportedTypes[_addTypeIndex];
 		var value = Activator.CreateInstance(type);
