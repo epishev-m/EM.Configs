@@ -335,26 +335,25 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 
 		var type = instance.GetType();
 		var baseType = type.BaseType;
-		var fields = type.GetFields();
-		var properties = type.GetProperties();
+		var members = type.GetMembers()
+			.Where(info => info.MemberType is MemberTypes.Field or MemberTypes.Property)
+			.ToList();
 
 		if (baseType == null || baseType == typeof(object))
 		{
-			resultList.AddRange(fields);
-			resultList.AddRange(properties);
+			resultList.AddRange(members);
 
-			return fields;
+			return resultList;
 		}
 
-		var baseFields = baseType.GetFields();
-		var baseFieldsSet = new HashSet<string>(baseFields.Select(f => f.Name));
-		var additionalFields = fields.Where(f => !baseFieldsSet.Contains(f.Name));
+		var baseMembers = baseType.GetMembers()
+			.Where(info => info.MemberType is MemberTypes.Field or MemberTypes.Property)
+			.ToList();
+		var baseFieldsSet = new HashSet<string>(baseMembers.Select(f => f.Name));
+		var additionalMembers = members.Where(f => !baseFieldsSet.Contains(f.Name));
 
-		var baseProperties = baseType.GetProperties();
-
-		resultList.AddRange(baseFields);
-		resultList.AddRange(baseProperties);
-		resultList.AddRange(additionalFields);
+		resultList.AddRange(baseMembers);
+		resultList.AddRange(additionalMembers);
 
 		return resultList;
 	}
