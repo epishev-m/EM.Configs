@@ -1,12 +1,11 @@
 ﻿using DG.DemiEditor;
-
-namespace EM.Configs.Editor
-{
-
 using UnityEngine;
 using System;
 using Newtonsoft.Json;
 
+namespace EM.Configs.Editor
+{
+	
 public class ColorJsonConverter : JsonConverter
 {
 	public override bool CanConvert(Type objectType)

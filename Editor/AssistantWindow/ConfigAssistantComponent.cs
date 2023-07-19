@@ -198,7 +198,8 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 			Converters =
 			{
 				new ConfigLinkJsonConverter(),
-				new ColorJsonConverter()
+				new ColorJsonConverter(),
+				new Vector2JsonConverter()
 			},
 			Formatting = Formatting.Indented
 		};
@@ -239,6 +240,7 @@ public abstract class ConfigAssistantComponent<T> : IAssistantComponent
 			{
 				new ConfigLinkJsonConverter(),
 				new ColorJsonConverter(),
+				new Vector2JsonConverter(),
 				new UnionConverter()
 			}
 		};

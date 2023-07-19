@@ -229,6 +229,7 @@ public sealed class ConfigGeneralAssistantComponent<T> : ProjectSettingsAssistan
 			{
 				new ConfigLinkJsonConverter(),
 				new ColorJsonConverter(),
+				new Vector2JsonConverter(),
 				new UnionConverter()
 			}
 		};
