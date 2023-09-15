@@ -4,7 +4,8 @@
     "references": [
         "EM.Foundation",
         "MessagePack",
-        "MessagePack.Annotations"
+        "MessagePack.Annotations",
+        "YamlDotNet"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

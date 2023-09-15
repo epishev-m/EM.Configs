@@ -1,15 +1,15 @@
-﻿namespace EM.Configs
-{
-
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
+
+namespace EM.Configs
+{
 
 internal static class ConfigsFactoryStringResources
 {
 	internal static string ErrorDeserialization<T>(ConfigsFactory<T> factory,
 		[CallerMemberName] string memberName = "",
 		[CallerLineNumber] int lineNumber = 0)
-		where T : class
+		where T : class, new()
 	{
 		return string.Format(CultureInfo.InvariantCulture,
 			"[Error] Failed to deserialize config file. \n {0}.{1}:{2}",
@@ -19,7 +19,7 @@ internal static class ConfigsFactoryStringResources
 	internal static string FailedToLoad<T>(ConfigsFactory<T> factory,
 		[CallerMemberName] string memberName = "",
 		[CallerLineNumber] int lineNumber = 0)
-		where T : class
+		where T : class, new()
 	{
 		return string.Format(CultureInfo.InvariantCulture,
 			"[Error] Failed to load text asset. \n {0}.{1}:{2}",

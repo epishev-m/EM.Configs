@@ -1,22 +1,24 @@
+﻿using System.IO;
+using EM.Foundation;
+using UnityEngine;
+
 namespace EM.Configs
 {
 
-using Foundation;
-using MessagePack;
-using UnityEngine;
-
-public class ConfigsFactory<T> : IFactory
-	where T : class
+public abstract class ConfigsFactory<T> : IFactory
+	where T : class, new()
 {
 	private readonly IAssetsManager _assetsManager;
 
-	private readonly string _key;
+	private readonly ILibraryEntryCatalog _catalog;
+
+	private readonly IConfigsSerializerFactory _factory;
 
 	#region IFactory
 
 	public Result<object> Create()
 	{
-		var loadAssetResult = _assetsManager.LoadAsset<TextAsset>(_key);
+		var loadAssetResult = _assetsManager.LoadAsset<TextAsset>(Key);
 
 		if (loadAssetResult.Failure)
 		{
@@ -24,36 +26,37 @@ public class ConfigsFactory<T> : IFactory
 		}
 
 		var textAsset = loadAssetResult.Data;
-		Result<object> result;
+		var serializer = _factory.Create(_catalog);
+		var stream = new MemoryStream(textAsset.bytes);
+		var result = serializer.Deserialize<T>(stream);
+		_assetsManager.ReleaseAsset(textAsset);
 
-		try
+		if (result.Failure)
 		{
-			var instance = MessagePackSerializer.Deserialize<T>(textAsset.bytes);
-			result = new SuccessResult<object>(instance);
-		}
-		catch (MessagePackSerializationException)
-		{
-			result = new ErrorResult<object>(ConfigsFactoryStringResources.ErrorDeserialization(this));
-		}
-		finally
-		{
-			_assetsManager.ReleaseAsset(textAsset);
+			return new ErrorResult<object>(ConfigsFactoryStringResources.ErrorDeserialization(this));
 		}
 
-		return result;
+		return new SuccessResult<object>(result.Data);
 	}
 
 	#endregion
 
 	#region ConfigsFactory
 
-	public ConfigsFactory(IAssetsManager assetsManager,
-		string key)
+	protected ConfigsFactory(IAssetsManager assetsManager,
+		ILibraryEntryCatalog catalog,
+		IConfigsSerializerFactory factory)
 	{
 		Requires.NotNullParam(assetsManager, nameof(assetsManager));
 
 		_assetsManager = assetsManager;
-		_key = key;
+		_catalog = catalog;
+		_factory = factory;
+	}
+
+	protected abstract string Key
+	{
+		get;
 	}
 
 	#endregion
