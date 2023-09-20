@@ -441,6 +441,10 @@ public abstract class ConfigsAssistantComponent<T> : AssistantComponent
 		{
 			Debug.LogError(stringBuilder.ToString());
 		}
+		else
+		{
+			Debug.Log("Validate - SUCCESS");
+		}
 	}
 
 	#endregion
