@@ -1,4 +1,5 @@
-﻿using MessagePack;
+﻿using EM.Foundation;
+using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
 
@@ -61,6 +62,8 @@ public sealed class LibraryEntryFormatter<T> : IMessagePackFormatter<T>,
 
 	public LibraryEntryFormatter(IFormatterResolver resolver)
 	{
+		Requires.NotNullParam(resolver, nameof(resolver));
+
 		_resolver = resolver;
 	}
 

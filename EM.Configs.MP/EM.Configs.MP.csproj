@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <PackageId>EM.Configs.MP</PackageId>
+        <Authors>epishev-m</Authors>
+        <Version>1.0.0</Version>
+        <Title>EM.Configs.MP</Title>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/epishev-m/EM.Configs</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Copyright>Copyright (c) 2023 Maxim Epishev (epishev.m@mail.ru)</Copyright>
+        <RootNamespace>EM.Configs</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\UPM\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\UPM\Runtime\Serializer\MessagePack\ILibraryEntryCatalogProvider.cs">
+        <Link>MessagePack\ILibraryEntryCatalogProvider.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Serializer\MessagePack\LibraryEntryFormatter.cs">
+        <Link>MessagePack\LibraryEntryFormatter.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Serializer\MessagePack\LibraryEntryLinkFormatter.cs">
+        <Link>MessagePack\LibraryEntryLinkFormatter.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Serializer\MessagePack\MessagePackConfigSerializer.cs">
+        <Link>MessagePack\MessagePackConfigSerializer.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="EM.Configs" Version="1.0.1" />
+      <PackageReference Include="MessagePack" Version="2.5.129" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <PackageId>EM.Configs</PackageId>
+        <Authors>epishev-m</Authors>
+        <Version>1.0.1</Version>
+        <Title>EM.Configs</Title>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/epishev-m/EM.Configs</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Copyright>Copyright (c) 2023 Maxim Epishev (epishev.m@mail.ru)</Copyright>
+        <RootNamespace>EM.Configs</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\UPM\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\UPM\Runtime\Library\BaseLibraryEntryLink.cs">
+        <Link>Library\BaseLibraryEntryLink.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Library\ILibraryEntry.cs">
+        <Link>Library\ILibraryEntry.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Library\ILibraryEntryCatalog.cs">
+        <Link>Library\ILibraryEntryCatalog.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Library\LibraryEntryCatalog.cs">
+        <Link>Library\LibraryEntryCatalog.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Serializer\IConfigsSerializer.cs">
+        <Link>IConfigsSerializer.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Serializer\IConfigsSerializerFactory.cs">
+        <Link>IConfigsSerializerFactory.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\AttributeValidator\CollectionSizeValidatorAttribute.cs">
+        <Link>Validator\AttributeValidator\CollectionSizeValidatorAttribute.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\AttributeValidator\RangeValidatorAttribute.cs">
+        <Link>Validator\AttributeValidator\RangeValidatorAttribute.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\AttributeValidator\ValidatorAttribute.cs">
+        <Link>Validator\AttributeValidator\ValidatorAttribute.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\CustomValidator\Attribute\OptionalFieldAttribute.cs">
+        <Link>Validator\CustomValidator\Attribute\OptionalFieldAttribute.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\CustomValidator\EnumValidator.cs">
+        <Link>Validator\CustomValidator\EnumValidator.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\CustomValidator\ICustomValidator.cs">
+        <Link>Validator\CustomValidator\ICustomValidator.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\CustomValidator\LibraryEntryLinkValidator.cs">
+        <Link>Validator\CustomValidator\LibraryEntryLinkValidator.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\CustomValidator\LibraryEntryValidator.cs">
+        <Link>Validator\CustomValidator\LibraryEntryValidator.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\CustomValidator\NullObjectValidator.cs">
+        <Link>Validator\CustomValidator\NullObjectValidator.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\CustomValidator\StringEmptyValidator.cs">
+        <Link>Validator\CustomValidator\StringEmptyValidator.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\IConfigsValidatorFactory.cs">
+        <Link>Validator\IConfigsValidatorFactory.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\IValidator.cs">
+        <Link>Validator\IValidator.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\ValidationResult.cs">
+        <Link>Validator\ValidationResult.cs</Link>
+      </Compile>
+      <Compile Include="..\UPM\Runtime\Validator\Validator.cs">
+        <Link>Validator\Validator.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="EM.Foundation" Version="1.1.0" />
+    </ItemGroup>
+
+</Project>

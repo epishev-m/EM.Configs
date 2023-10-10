@@ -4,7 +4,6 @@ using System.Text;
 using EM.Foundation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
 
 namespace EM.Configs
 {

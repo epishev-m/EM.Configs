@@ -1,0 +1,14 @@
+{
+  "name": "com.em.configs",
+  "displayName": "EM.Configs",
+  "version": "1.0.1",
+  "author": {
+    "name": "Maxim Epishev",
+    "email": "epishev.m@mail.ru"
+  },
+  "dependencies": {
+    "com.em.buildsystem": "0.0.2",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.neuecc.messagepack": "2.5.124"
+  }
+}
