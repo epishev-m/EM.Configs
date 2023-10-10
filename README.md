@@ -25,6 +25,7 @@ scopedRegistries": [
 - [com.em.buildsystem](https://openupm.com/packages/com.em.buildsystem.html)
 - [com.neuecc.messagepack](https://openupm.com/packages/com.neuecc.messagepack.html)
 - com.unity.nuget.newtonsoft-json
+
 ### NuGet
 ```ps1
 https://www.nuget.org/packages/EM.Configs
