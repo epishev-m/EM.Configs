@@ -1,4 +1,7 @@
 # EM.Configs
+
+Config system, validation, support for multiple formats (yaml, json, MessagePack)
+
 ## Installation
 ### Git
 ```ps1
